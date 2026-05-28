@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Worldwright &mdash; Design</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root {
+    --fg: #1a1a1a; --muted: #5a5a5a; --bg: #fafafa; --card: #ffffff;
+    --accent: #1f3a5f; --accent-soft: #e6edf7; --warn: #8a4f00; --ok: #1a6e3f;
+    --rule: #e5e5e5; --code-bg: #f3f3ee;
+  }
+  html { background: var(--bg); }
+  body {
+    color: var(--fg); font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    max-width: 880px; margin: 2rem auto 5rem; padding: 0 1.25rem;
+  }
+  h1 { font-size: 2rem; margin: 0 0 .25rem; letter-spacing: -.01em; }
+  h2 { font-size: 1.3rem; margin: 2.5rem 0 .5rem; padding-bottom: .3rem; border-bottom: 1px solid var(--rule); letter-spacing: -.005em; }
+  h3 { font-size: 1.05rem; margin: 1.5rem 0 .4rem; color: var(--accent); }
+  h4 { font-size: .95rem; margin: 1rem 0 .25rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  p, li { color: var(--fg); }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: .25rem 0 1.5rem; }
+  .meta { color: var(--muted); font-size: .85rem; margin-bottom: 1.5rem; }
+  code, pre { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+  code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; font-size: .88em; }
+  pre {
+    background: var(--code-bg); padding: 12px 14px; border-radius: 6px;
+    overflow-x: auto; font-size: .82rem; line-height: 1.45;
+  }
+  pre code { background: transparent; padding: 0; }
+  table { border-collapse: collapse; width: 100%; margin: .75rem 0; font-size: .9rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .card {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 8px;
+    padding: 1rem 1.25rem; margin: 1rem 0;
+  }
+  .badge { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: .75rem; font-weight: 600; }
+  .badge.ok { background: #e1f1e8; color: var(--ok); }
+  .badge.warn { background: #fbeed3; color: var(--warn); }
+  .badge.muted { background: #ececec; color: var(--muted); }
+  .ascii {
+    background: var(--code-bg); padding: 1rem; border-radius: 6px;
+    font-family: ui-monospace, Menlo, monospace; font-size: .78rem; line-height: 1.35;
+    white-space: pre; overflow-x: auto;
+  }
+  .footnote { color: var(--muted); font-size: .82rem; }
+  .nav { font-size: .9rem; color: var(--muted); margin: .5rem 0 2rem; }
+  .nav a { color: var(--accent); text-decoration: none; margin-right: .85rem; }
+  .nav a:hover { text-decoration: underline; }
+  ul { padding-left: 1.2rem; }
+  li + li { margin-top: .15rem; }
+</style>
+</head>
+<body>
+
+<h1>Worldwright</h1>
+<p class="lede">An LLM/VLM agent that autonomously authors simulation tasks in Genesis World 1.0 &mdash; a modern reimplementation of RoboGen built on the new <code>genesis</code> physics stack.</p>
+<p class="meta">Design v0.0.1 &middot; Phase A complete &middot; Targets Apple M2 (Metal) first, cloud NVIDIA later.</p>
+
+<nav class="nav">
+  <a href="#goal">Goal</a>
+  <a href="#arch">Architecture</a>
+  <a href="#wrapper">Engine wrapper</a>
+  <a href="#agents">Agents</a>
+  <a href="#loop">Self-correction loop</a>
+  <a href="#schema">Data schema</a>
+  <a href="#metrics">Metrics</a>
+  <a href="#repo">Repo skeleton</a>
+  <a href="#milestones">Milestones</a>
+  <a href="#risks">Risks</a>
+</nav>
+
+<h2 id="goal">1. Goal</h2>
+<p>Given a domain seed (e.g. <em>&ldquo;Franka tabletop block manipulation&rdquo;</em>), Worldwright autonomously:</p>
+<ol>
+  <li>proposes a concrete task,</li>
+  <li>generates the scene as Python code that drives our thin Genesis wrapper,</li>
+  <li>synthesises a success/reward predicate as code,</li>
+  <li>runs the scene in Genesis World 1.0 and executes a scripted oracle to test solvability,</li>
+  <li>self-corrects failures (scene-build error, IK infeasible, oracle didn&rsquo;t reach success),</li>
+  <li>logs validated tasks and trajectories as a training-ready <a href="https://huggingface.co/docs/lerobot" target="_blank" rel="noopener">LeRobot</a> dataset.</li>
+</ol>
+<p>The result is both a portfolio artifact (an end-to-end agentic dataset generator) and a runnable benchmark for downstream policy training.</p>
+
+<h2 id="arch">2. Architecture</h2>
+
+<div class="ascii">
+                            ┌──────────────────────────────────────┐
+                            │            domain seed               │
+                            └──────────────────┬───────────────────┘
+                                               │
+                ┌──────────────────────────────▼──────────────────────────────┐
+                │                       Pipeline orchestrator                  │
+                │   (loops, budget, retries, cost accounting, run logs)        │
+                └──┬──────────┬────────────────┬─────────────────────┬────────┘
+                   │          │                │                     │
+        ┌──────────▼──┐  ┌────▼─────────┐  ┌───▼─────────────┐  ┌────▼──────────┐
+        │  Proposer   │  │  SceneCoder  │  │  RewardCoder    │  │    Critic     │
+        │  (Sonnet)   │→ │  (Sonnet)    │→ │     (Opus)      │→ │   (Sonnet)    │
+        │  TaskSpec   │  │  scene.py    │  │  success.py     │  │  patch / kill │
+        └─────────────┘  └────┬─────────┘  └────┬────────────┘  └────▲──────────┘
+                              │                 │                    │
+                              └────────┬────────┘   build / run logs │
+                                       │             ┌───────────────┘
+                ┌──────────────────────▼─────────────┴────────────────┐
+                │                   Verifier                          │
+                │      runs Solver, evaluates success(), scores       │
+                └──────────────────────────┬──────────────────────────┘
+                                           │
+                       ┌───────────────────▼───────────────────┐
+                       │                Solver                  │
+                       │  scripted oracle = IK + plan_path      │
+                       │  (Genesis-native motion planning)      │
+                       └───────────────────┬───────────────────┘
+                                           │
+                       ┌───────────────────▼───────────────────┐
+                       │           Engine wrapper               │
+                       │  worldwright.engine.Scene/Franka/...   │
+                       │     (only chokepoint to Genesis)       │
+                       └───────────────────┬───────────────────┘
+                                           │
+                       ┌───────────────────▼───────────────────┐
+                       │           Genesis World 1.0            │
+                       │   (Quadrants compiler → Metal/CUDA)    │
+                       └───────────────────────────────────────┘
+
+                       validated task + trajectory
+                                  │
+                                  ▼
+                  ┌──────────────────────────────┐
+                  │   LeRobot dataset writer     │
+                  └──────────────────────────────┘
+</div>
+
+<h3>2.1 Component responsibilities</h3>
+<table>
+<thead><tr><th>Component</th><th>Lives in</th><th>What it owns</th></tr></thead>
+<tbody>
+<tr><td>Engine wrapper</td><td><code>worldwright.engine</code></td><td>Typed, agent-friendly API over <code>gs.Scene</code>, <code>gs.morphs.*</code>, <code>RigidEntity</code>. The <strong>only</strong> module that imports <code>genesis</code>. Insulates the rest of the codebase from API churn.</td></tr>
+<tr><td>Task model</td><td><code>worldwright.task</code></td><td><code>TaskSpec</code>, <code>SceneSpec</code>, <code>SuccessSpec</code>, <code>OracleSpec</code> &mdash; the data shape passed between agents.</td></tr>
+<tr><td>Proposer</td><td><code>worldwright.agents.proposer</code></td><td>Seed &rarr; <code>TaskSpec</code> (description + object list + initial state + intent). Sonnet.</td></tr>
+<tr><td>SceneCoder</td><td><code>worldwright.agents.scene_coder</code></td><td><code>TaskSpec</code> &rarr; <code>build_scene(engine)</code> Python source. Sonnet.</td></tr>
+<tr><td>RewardCoder</td><td><code>worldwright.agents.reward_coder</code></td><td><code>TaskSpec</code> &rarr; <code>success(state) -&gt; bool</code> and an oracle hint (which manipulator action sequence to try). <strong>Opus</strong>, because this is the hardest reasoning step.</td></tr>
+<tr><td>Solver</td><td><code>worldwright.solver</code></td><td>Executes the oracle: IK + <code>plan_path</code> (RRT-Connect, Genesis-native). Records contact/state trace.</td></tr>
+<tr><td>Verifier</td><td><code>worldwright.verifier</code></td><td>Runs the solver, applies <code>success()</code>, returns <code>VerifierReport(passed, reason, run_log, trajectory)</code>.</td></tr>
+<tr><td>Critic</td><td><code>worldwright.agents.critic</code></td><td>Reads a failed <code>VerifierReport</code>; returns either a patch to scene/reward/oracle or <code>UNSOLVABLE</code>. Sonnet.</td></tr>
+<tr><td>Dataset writer</td><td><code>worldwright.dataset</code></td><td>Validated trajectories &rarr; LeRobot dataset on disk (+ raw NPZ for debugging).</td></tr>
+<tr><td>Pipeline</td><td><code>worldwright.pipeline</code></td><td>Orchestration: seed loop, retry budget, token / wallclock accounting, structured run logs.</td></tr>
+<tr><td>Sandbox</td><td><code>worldwright.utils.sandbox</code></td><td>Restricted-namespace exec of LLM-generated <code>scene.py</code> / <code>success.py</code>. Whitelisted imports (only our wrapper + <code>numpy</code>/<code>math</code>); filesystem, subprocess, and network APIs blocked.</td></tr>
+</tbody></table>
+
+<h2 id="wrapper">3. The engine wrapper</h2>
+<p>The wrapper is the project&rsquo;s most important design surface: it&rsquo;s simultaneously (a) the only place we touch Genesis, (b) the API the LLM sees as &ldquo;the world&rdquo;, (c) the type contract verifiers and dataset writers consume. <strong>Wrapping</strong> rather than scattering <code>genesis</code> calls through agent code gives us one chokepoint when the 1.0 API moves.</p>
+
+<h4>3.1 Surface sketch</h4>
+<pre><code>class WorldwrightScene:
+    def __init__(
+        self,
+        sim_dt: float = 0.01,
+        backend: Literal["metal", "cpu", "cuda"] = "metal",
+        n_envs: int = 0,
+        show_viewer: bool = False,
+        renderer: Literal["nyx", "pyrender"] | None = None,
+    ): ...
+
+    def add_plane(self) -> EntityHandle: ...
+    def add_box(self, size: Vec3, pos: Vec3, mass: float | None = None,
+                friction: float | None = None, color: RGB | None = None) -> EntityHandle: ...
+    def add_mesh(self, path: str, pos: Vec3, scale: float = 1.0) -> EntityHandle: ...
+    def add_franka(self, base_pos: Vec3 = (0, 0, 0)) -> FrankaHandle: ...
+
+    def add_camera(self, name: str, pos: Vec3, lookat: Vec3,
+                   res: tuple[int, int] = (640, 480)) -> CameraHandle: ...
+
+    def build(self) -> None: ...
+    def step(self) -> None: ...
+
+    def state(self) -> SceneState: ...      # snapshot dataclass
+    def render(self, camera: str) -> RGBDArray: ...
+
+class FrankaHandle:
+    end_effector: LinkHandle               # always "hand"
+    arm_dofs: list[int]; gripper_dofs: list[int]
+
+    def set_joint_positions(self, q: ArrayLike) -> None: ...
+    def ik(self, pos: Vec3, quat: Quat) -> np.ndarray: ...
+    def plan(self, q_goal: ArrayLike, n_waypoints: int = 100) -> list[np.ndarray]: ...
+    def follow(self, path: Iterable[np.ndarray]) -> None: ...
+    def open_gripper(self) -> None: ...
+    def close_gripper(self, force: float = -0.8) -> None: ...
+
+class EntityHandle:
+    name: str
+    def get_pos(self) -> np.ndarray: ...
+    def get_quat(self) -> np.ndarray: ...
+    def contacts(self) -> list[ContactInfo]: ...
+    def in_contact_with(self, other: "EntityHandle") -> bool: ...
+
+@dataclass(frozen=True)
+class SceneState:
+    t: float
+    franka_q: np.ndarray; franka_qdot: np.ndarray
+    ee_pos: np.ndarray; ee_quat: np.ndarray
+    objects: dict[str, ObjectState]   # name -> pos, quat, vel
+    contacts: list[ContactInfo]
+</code></pre>
+
+<h4>3.2 Why this shape</h4>
+<ul>
+  <li><strong>Names instead of indices.</strong> Genesis returns DoF indices; we surface joint <em>names</em> and skill-level verbs (<code>open_gripper()</code>) so the LLM can&rsquo;t mis-index.</li>
+  <li><strong>One step per <code>scene.step()</code>.</strong> No hidden loops &rarr; Verifier can attribute every observation to a precise simulation step.</li>
+  <li><strong>State is a snapshot dataclass</strong>, not a live handle. Success predicates close over a frozen <code>SceneState</code>, so they&rsquo;re trivially testable in isolation without rebooting the sim.</li>
+  <li><strong>Numpy at the boundary.</strong> The wrapper converts MPS / CUDA tensors to host <code>numpy</code> at the API edge; agents never see device-laden tensors. (Discovered the hard way during vertical-slice reproduction.)</li>
+  <li><strong>Renderer is optional and lazy.</strong> Vertical slice runs without rendering. Nyx vs. Pyrender is a constructor flag, not a leak through the API.</li>
+</ul>
+
+<h2 id="agents">4. Agents</h2>
+<h3>4.1 Model assignment</h3>
+<table>
+<thead><tr><th>Agent</th><th>Model</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Proposer</td><td><code>claude-sonnet-4-6</code></td><td>Cheap, fast, English-out; creativity matters more than rigor.</td></tr>
+<tr><td>SceneCoder</td><td><code>claude-sonnet-4-6</code></td><td>Calling a small typed API &mdash; well within Sonnet&rsquo;s coding band.</td></tr>
+<tr><td>RewardCoder</td><td><code>claude-opus-4-7</code></td><td>Hardest reasoning step; subtle off-by-one in a success predicate poisons the whole dataset. Worth the spend.</td></tr>
+<tr><td>Critic</td><td><code>claude-sonnet-4-6</code></td><td>Pattern-matching from logs to patches. Promoted to Opus if first-pass diagnosis fails on a tracked benchmark.</td></tr>
+</tbody></table>
+
+<h3>4.2 Structured outputs</h3>
+<p>All four agents use Anthropic <em>tool_use</em>-style structured output, schemas defined as <code>pydantic.BaseModel</code> in <code>worldwright.task</code>. Code emissions are returned as a single <code>scene_code: str</code> / <code>success_code: str</code> field; both are then run through <code>ast.parse</code> + a forbidden-name visitor before exec.</p>
+
+<h3>4.3 Per-task token budget</h3>
+<p>Default: 30 K input + 4 K output per agent call, 4 critic iterations max &rArr; ceiling &asymp; <em>(3 + 4) authoring calls + 4 critic calls = 11 calls / task</em>. Rough cost model used for M2 / M3 planning, surfaced in run logs.</p>
+
+<h2 id="loop">5. The self-correction loop</h2>
+<ol>
+  <li><b>Seed in.</b> Pipeline picks a seed (free text + RNG salt).</li>
+  <li><b>Propose.</b> Proposer returns <code>TaskSpec</code>: description, object list, intent (&ldquo;lift cube onto target zone&rdquo;), invariants.</li>
+  <li><b>Code scene.</b> SceneCoder returns <code>build_scene(s: WorldwrightScene)</code>. Run AST + sandbox checks; dry-build the scene (catch geometric / asset errors before stepping). On failure &rarr; <strong>Critic</strong> with the traceback &rarr; patch.</li>
+  <li><b>Code reward + oracle hint.</b> RewardCoder returns <code>success(state) -&gt; bool</code> and an <code>OracleHint</code> (target objects, grasp pose, sequence). Static-check + unit-call against the scene&rsquo;s initial <code>SceneState</code> (must not crash).</li>
+  <li><b>Solve.</b> Solver runs IK + <code>plan_path</code> for each oracle phase, executes the trajectory, samples <code>SceneState</code> per step. Records contact, success-at-step, terminal state.</li>
+  <li><b>Verify.</b> Verifier evaluates <code>success(terminal_state)</code> and produces <code>VerifierReport</code> with full run log + (on failure) a diagnosis hint (&ldquo;IK infeasible at phase 2&rdquo;, &ldquo;success() never fired but oracle completed&rdquo;, &ldquo;cube fell off table&rdquo;).</li>
+  <li><b>Critic.</b> If failed and budget remains, Critic returns a <em>patch type</em> (<code>SCENE</code>, <code>SUCCESS</code>, <code>ORACLE</code>) + new source. Loop back to step 3 / 4. Else mark task <code>UNSOLVABLE</code>.</li>
+  <li><b>Log.</b> Validated tasks: persisted to LeRobot dataset + raw NPZ + task manifest JSON.</li>
+</ol>
+
+<h2 id="schema">6. Data schema</h2>
+<h3>6.1 Task manifest (one JSON per validated task)</h3>
+<pre><code>{
+  "task_id": "wright-0000042",
+  "seed": "franka-tabletop-block#a3f1",
+  "domain": "franka_tabletop_manipulation",
+  "description": "Pick up the small red cube and place it inside the green square.",
+  "scene_code_sha": "sha256:...",
+  "scene_code": "<inline source>",
+  "success_code": "<inline source>",
+  "oracle": {"type": "ik_plan", "phases": [...]},
+  "objects": [{"name": "cube_a", "type": "box", "size": [0.04, 0.04, 0.04], ...}],
+  "metrics": {
+    "critic_iterations": 1,
+    "tokens": {"input": 18420, "output": 2310},
+    "wallclock_s": 78.4,
+    "oracle_steps": 612
+  },
+  "git_sha": "...", "genesis_version": "1.0.0"
+}
+</code></pre>
+
+<h3>6.2 Trajectory (LeRobot episode)</h3>
+<p>Per-step record matches LeRobot&rsquo;s <code>Dataset</code> contract:</p>
+<table>
+<thead><tr><th>Key</th><th>Shape / type</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td><code>observation.state</code></td><td><code>float32[9]</code> (7 arm q + 2 gripper)</td><td><code>franka.get_dofs_position</code></td></tr>
+<tr><td><code>observation.ee_pose</code></td><td><code>float32[7]</code> (pos + quat)</td><td><code>end_effector.get_pos / get_quat</code></td></tr>
+<tr><td><code>observation.objects</code></td><td>dict[name &rarr; <code>float32[7]</code>]</td><td>per-entity pos / quat</td></tr>
+<tr><td><code>observation.image</code> <span class="badge muted">M3+</span></td><td><code>uint8[H,W,3]</code></td><td>Nyx camera</td></tr>
+<tr><td><code>action</code></td><td><code>float32[9]</code></td><td>oracle command at that step</td></tr>
+<tr><td><code>reward</code></td><td><code>float32</code></td><td>shaped reward (optional); else 1.0 on success step, 0 else</td></tr>
+<tr><td><code>done</code></td><td><code>bool</code></td><td><code>success(state)</code> firing</td></tr>
+<tr><td><code>task_id</code></td><td>str</td><td>FK to manifest</td></tr>
+</tbody></table>
+<p>Raw NPZ shadow-write: same data, dict-of-arrays, for fast in-repo debugging without the LeRobot dependency on read.</p>
+
+<h2 id="metrics">7. Metrics</h2>
+<h3>7.1 Validity</h3>
+<ul>
+  <li><b>valid_rate</b> = validated_tasks / proposed_tasks. Target &ge; 0.5 for M2.</li>
+  <li><b>first_try_success_rate</b> = oracle pass without Critic intervention. Diagnostic for prompt quality.</li>
+  <li><b>critic_iterations_per_validated_task</b>. Cost proxy.</li>
+  <li><b>tokens_per_validated_task</b> (in + out, per agent). $-cost proxy.</li>
+  <li><b>solver_wallclock_s_per_task</b>. Throughput proxy.</li>
+</ul>
+<h3>7.2 Diversity (for the dataset deliverable)</h3>
+<ul>
+  <li><b>Object-count distribution</b>, <b>object-type entropy</b>, <b>size-bucket coverage</b>.</li>
+  <li><b>Spatial-layout entropy</b>: discretise tabletop into an 8&times;8 grid; measure entropy of (object &rarr; cell) occupancy across the dataset.</li>
+  <li><b>Skill taxonomy coverage</b>: Proposer labels each task with one or more skill tags (<code>pick</code>, <code>place</code>, <code>push</code>, <code>stack</code>, <code>insert</code>). Report task counts per tag.</li>
+  <li><b>Reward-function clustering</b>: embed each <code>success_code</code> (Voyage embeddings or Claude-as-embedder), HDBSCAN; report cluster count + silhouette.</li>
+</ul>
+
+<h2 id="repo">8. Repo skeleton</h2>
+<pre><code>worldwright/
+&#9500;&#9472;&#9472; DESIGN.html                    # this doc
+&#9500;&#9472;&#9472; pyproject.toml
+&#9500;&#9472;&#9472; .gitignore
+&#9500;&#9472;&#9472; .venv/                         # uv venv, py3.12
+&#9500;&#9472;&#9472; src/worldwright/
+&#9474;   &#9500;&#9472;&#9472; __init__.py
+&#9474;   &#9500;&#9472;&#9472; engine/                    # only module that imports `genesis`
+&#9474;   &#9474;   &#9500;&#9472;&#9472; scene.py               # WorldwrightScene
+&#9474;   &#9474;   &#9500;&#9472;&#9472; franka.py              # FrankaHandle
+&#9474;   &#9474;   &#9492;&#9472;&#9472; handles.py             # EntityHandle, SceneState
+&#9474;   &#9500;&#9472;&#9472; task/spec.py               # TaskSpec, SceneSpec, SuccessSpec, OracleSpec
+&#9474;   &#9500;&#9472;&#9472; agents/
+&#9474;   &#9474;   &#9500;&#9472;&#9472; proposer.py
+&#9474;   &#9474;   &#9500;&#9472;&#9472; scene_coder.py
+&#9474;   &#9474;   &#9500;&#9472;&#9472; reward_coder.py
+&#9474;   &#9474;   &#9500;&#9472;&#9472; critic.py
+&#9474;   &#9474;   &#9492;&#9472;&#9472; prompts/                # versioned prompt templates
+&#9474;   &#9500;&#9472;&#9472; solver/oracle.py            # IK + plan_path execution
+&#9474;   &#9500;&#9472;&#9472; verifier/verifier.py
+&#9474;   &#9500;&#9472;&#9472; dataset/lerobot_writer.py
+&#9474;   &#9500;&#9472;&#9472; pipeline/pipeline.py        # orchestrator
+&#9474;   &#9492;&#9472;&#9472; utils/sandbox.py            # AST guard + restricted exec
+&#9500;&#9472;&#9472; scripts/
+&#9474;   &#9500;&#9472;&#9472; reproduce_grasp.py          # vertical-slice baseline (this session)
+&#9474;   &#9492;&#9472;&#9472; run_pipeline.py             # M1+
+&#9500;&#9472;&#9472; tests/
+&#9474;   &#9500;&#9472;&#9472; test_engine.py
+&#9474;   &#9492;&#9472;&#9472; test_pipeline.py
+&#9492;&#9472;&#9472; data/                          # generated datasets (gitignored)
+</code></pre>
+
+<h2 id="milestones">9. Milestones</h2>
+<table>
+<thead><tr><th>M#</th><th>Outcome</th><th>Acceptance</th></tr></thead>
+<tbody>
+<tr><td>M0 <span class="badge ok">done</span></td><td>Phase A research, Phase B design, vertical-slice script runs on M2 Metal.</td><td><code>scripts/reproduce_grasp.py</code> exits 0; DESIGN.html written; skeleton committed.</td></tr>
+<tr><td>M1</td><td>End-to-end vertical slice: one hard-coded seed runs Proposer&rarr;SceneCoder&rarr;RewardCoder&rarr;Solver&rarr;Verifier&rarr;Dataset, no diversity, no Critic loop yet.</td><td>1 validated task + 1 LeRobot episode on disk; engine wrapper compiles + runs; all 4 agents invoked.</td></tr>
+<tr><td>M2</td><td>Generalise within Franka tabletop domain. Variation in object size / pos / color / target. Critic loop active.</td><td>&ge; 50 validated tasks; <code>valid_rate</code> &ge; 0.5; reproducible from a single seed-list file; metric dashboard.</td></tr>
+<tr><td>M3</td><td>Scale to dataset. Move to cloud NVIDIA. Batched envs, Nyx rendering. Publish dataset.</td><td>~1 K validated trajectories; LeRobot dataset uploaded; diversity metrics reported; cost per task &lt; $1.</td></tr>
+<tr><td>M4 <span class="badge muted">optional</span></td><td>Downstream-training proof. Train Diffusion Policy or ACT on generated dataset.</td><td>Success-rate-vs-N curve; baseline beats random &amp; oracle-on-unseen-init.</td></tr>
+</tbody></table>
+
+<h2 id="risks">10. Risks &amp; de-risk plan</h2>
+<ol>
+  <li>
+    <strong>Nyx renderer on Apple Metal is unverified.</strong>
+    <span class="badge warn">high</span><br/>
+    Nyx ships as a separate <code>genesis-nyx</code> package; the Metal path isn&rsquo;t documented as supported. If broken, every M3 image-observation feature stalls.
+    <em>De-risk M1 sprint 1:</em> attempt Nyx init + render a single frame on M2; if it crashes, fall back to <strong>Pyrender</strong> for M1 / M2 and re-attempt Nyx only after the cloud-GPU jump.
+  </li>
+  <li>
+    <strong>Scene build cost.</strong> <span class="badge ok">de-risked this session</span><br/>
+    Cold first build is ~50 s (Quadrants kernel compilation). Critical question was whether the <em>fastcache</em> persists across processes. Empirically: a fresh process picks up the cached kernel in ~3.1 s. Acceptable for the self-correction loop. Document the cache path in the wrapper.
+  </li>
+  <li>
+    <strong>IK + <code>plan_path</code> is a weak proxy for solvability.</strong>
+    <span class="badge warn">med</span><br/>
+    A task can pass geometric reachability + collision-free pathing and still be physically unsolvable (gripper geometry vs object shape, friction limits, etc.).
+    <em>De-risk M2 sprint 1:</em> hand-label a 20-task validation set; measure oracle false-positive rate; if &gt; 20 %, add a contact-stability check post-grasp (cube must remain in finger contact during lift).
+  </li>
+  <li>
+    <strong>RewardCoder produces uncompilable / semantically wrong success functions.</strong>
+    <span class="badge warn">med</span><br/>
+    Reward synthesis is the hardest code-gen task in the system.
+    <em>De-risk M1:</em> measure pass-at-1 compile rate &amp; pass-at-1 correctness against the hand-labeled set; if &lt; 70 %, ablate Sonnet vs Opus and consider a chain-of-thought scratchpad.
+  </li>
+  <li>
+    <strong>M2 throughput ceiling for dataset-scale.</strong>
+    <span class="badge muted">low</span><br/>
+    84 step/s &times; ~700 steps / task &times; 50 tasks &asymp; 7 minutes of sim per 50-task batch. Fine for M1 / M2; M3 needs cloud NVIDIA, already planned.
+  </li>
+  <li>
+    <strong>Asset diversity without an external catalog.</strong>
+    <span class="badge muted">low</span><br/>
+    Genesis ships 11 URDFs &amp; 22 meshes; tabletop block manipulation is fine on primitives alone. PartNet-Mobility / Objaverse integration is M3 work, not blocking.
+  </li>
+  <li>
+    <strong>LLM-generated code as an unintended-side-effect surface.</strong>
+    <span class="badge muted">low</span><br/>
+    Pipeline runs locally on a dev box. The <code>utils/sandbox.py</code> AST guard blocks filesystem, subprocess, and network builtins / modules from M1 onward &mdash; primarily for correctness (a typo&rsquo;d module name that imports the wrong thing), secondarily as defence-in-depth.
+  </li>
+  <li>
+    <strong>Device-tensor leakage at the wrapper boundary.</strong>
+    <span class="badge ok">de-risked this session</span><br/>
+    The vertical-slice reproduction surfaced that <code>RigidEntity.get_pos()</code> returns MPS tensors on Metal that can&rsquo;t be passed directly to <code>numpy</code>. Wrapper converts to host <code>numpy</code> at every public getter; success predicates and dataset writers never see device tensors.
+  </li>
+</ol>
+
+<h2 id="open">11. Open questions for the next checkin</h2>
+<ul>
+  <li>Cost ceiling per validated task &mdash; what dollar figure should the pipeline refuse to exceed?</li>
+  <li>Do we want a deterministic seed-list mode (reproducible portfolio runs) <em>and</em> a free-running stochastic mode, or only one?</li>
+  <li>For M4 (downstream training): Diffusion Policy on state-only, or wait for M3 images and use ACT / pi0?</li>
+  <li>Public-dataset publication: HuggingFace Hub under your name, or keep local until Genesis AI conversation?</li>
+</ul>
+
+<p class="footnote">Cited Genesis source paths used to ground this design live in the Phase A report. The wrapper&rsquo;s API surface is intentionally a strict subset of what we observed in <code>genesis/engine/scene.py</code>, <code>genesis/engine/entities/rigid_entity/rigid_entity.py</code>, and <code>genesis/options/morphs.py</code>.</p>
+
+</body>
+</html>
