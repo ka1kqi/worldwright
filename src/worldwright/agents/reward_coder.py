@@ -71,7 +71,17 @@ Top-level `target_object` is the primary object being acted on.
 ## Worked examples
 
 ### Example A — "Lift the red cube 15 cm above the table"
-Cube starts at z=0.025. Standard pick-and-lift:
+Cube starts at z=0.025 (so its centre is 2.5 cm above the table — a 5 cm cube
+half is 2.5 cm). Reach depth is chosen so the gripper fingers wrap around the
+**middle** of the cube. For an object centred at cube.pos with cube_size on each
+side, use:
+
+    pre_grasp z = cube.pos[2] + 0.225            # ~22 cm above the centre
+    reach z     = cube.pos[2] + 0.105            # gripper at object centre + 10.5 cm
+    lift z      = cube.pos[2] + 0.255            # final centre height
+
+These are PARAMETRIC — do not hard-code 0.13 / 0.25 / 0.28. Compute them from
+the TaskSpec object's pos[2].
 
 success_code:
 ```python
@@ -85,18 +95,34 @@ def success(state):
     return bool(cube.pos[2] > 0.15 and xy_err < 0.05)
 ```
 
-oracle:
+For a cube at pos=(0.65, 0.0, 0.02) (4 cm cube), the oracle would be:
 ```json
 {
   "target_object": "red_cube",
   "phases": [
-    {"type": "ik_pre_grasp", "pos": [0.6, 0.0, 0.25], "n_waypoints": 200},
-    {"type": "ik_reach",     "pos": [0.6, 0.0, 0.13], "steps": 100},
-    {"type": "grasp",        "force": -0.5,           "steps": 100},
-    {"type": "ik_lift",      "pos": [0.6, 0.0, 0.28], "steps": 200}
+    {"type": "ik_pre_grasp", "pos": [0.65, 0.0, 0.245], "n_waypoints": 200},
+    {"type": "ik_reach",     "pos": [0.65, 0.0, 0.125], "steps": 100},
+    {"type": "grasp",        "force": -0.5,             "steps": 100},
+    {"type": "ik_lift",      "pos": [0.65, 0.0, 0.275], "steps": 200}
   ]
 }
 ```
+
+For a cube at pos=(0.6, 0.0, 0.025) (5 cm cube), the oracle would be:
+```json
+{
+  "target_object": "red_cube",
+  "phases": [
+    {"type": "ik_pre_grasp", "pos": [0.6, 0.0, 0.250], "n_waypoints": 200},
+    {"type": "ik_reach",     "pos": [0.6, 0.0, 0.130], "steps": 100},
+    {"type": "grasp",        "force": -0.5,            "steps": 100},
+    {"type": "ik_lift",      "pos": [0.6, 0.0, 0.280], "steps": 200}
+  ]
+}
+```
+
+Notice how the reach z **tracks the object centre** so the gripper fingers can
+wrap symmetrically around the object regardless of object size.
 
 ### Example B — "Push the blue cube past x = 0.7"
 Sliding contact task; gripper closed, low approach:
@@ -147,6 +173,8 @@ ik_pre_grasp of each cycle; subsequent IK phases can use steps alone.
 - Does success() reference the right object names from TaskSpec.objects?
 - Does the oracle's target_object exist in TaskSpec.objects?
 - Are oracle phase positions inside the workspace (x in [0.4, 0.8], y in [-0.3, 0.3])?
+- **Did I compute reach_z from the object's pos[2], not hard-code 0.13?** Different
+  object sizes need different reach depths.
 - Does the oracle actually drive the world toward the success() == True condition?
 """
 
