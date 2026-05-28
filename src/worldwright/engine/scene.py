@@ -193,6 +193,16 @@ class WorldwrightScene:
     def build(self) -> None:
         if self._built:
             return
+        # If no viewer + no cameras, monkey-patch the rasterizer to skip
+        # pyrender.OffscreenRenderer init -- that path uses pyglet on macOS,
+        # which fails with "IndexError: list index out of range" once the
+        # cocoa display state goes stale (locked screen, sleep mode, etc.)
+        # and is unnecessary for state-only batch runs.
+        if not self._show_viewer and not self._cameras:
+            try:
+                self._scene.visualizer._rasterizer._context = None
+            except Exception:
+                pass
         self._scene.build()
         if self._franka is not None:
             self._franka._post_build()

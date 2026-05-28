@@ -6,8 +6,10 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import os
 import re
 import signal
+import subprocess
 import sys
 import time
 from dataclasses import dataclass
@@ -94,6 +96,65 @@ class BatchSummary:
     wallclock_s: float = 0.0
 
 
+def _run_task_in_subprocess(
+    *,
+    seed: str,
+    task_id: str,
+    dataset_name: str,
+    repo_id: str,
+    backend: str,
+    max_critic_iterations: int,
+    csv_file,
+    writer,
+    log: Callable[[str], None],
+) -> None:
+    """Spawn scripts/run_single_task.py for one task; append its CSV row.
+
+    Spawning in a fresh process avoids in-process state leaks (pyglet/cocoa
+    display teardown, Genesis singleton residue) that cause IndexError on the
+    second task's scene.build() in macOS Metal batches.
+    """
+    repo_root = Path(__file__).resolve().parents[3]
+    python = Path(repo_root) / ".venv" / "bin" / "python"
+    script = Path(repo_root) / "scripts" / "run_single_task.py"
+    cmd = [
+        str(python), str(script),
+        "--seed", seed,
+        "--task-id", task_id,
+        "--dataset-name", dataset_name,
+        "--repo-id", repo_id,
+        "--backend", backend,
+        "--max-critic-iterations", str(max_critic_iterations),
+    ]
+    log(f"[batch] spawn: task_id={task_id}")
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        cwd=str(repo_root),
+        env=os.environ,
+    )
+    stdout, _ = proc.communicate()
+    line = stdout.decode("utf-8").strip().splitlines()
+    if not line:
+        log(f"[batch] subprocess emitted no CSV row (exit {proc.returncode})")
+        # Synthesise a crash row.
+        crash = {k: "" for k in LOG_FIELDS}
+        crash["task_id"] = task_id
+        crash["seed"] = seed
+        crash["success"] = "false"
+        crash["failure_stage"] = "subprocess_crash"
+        crash["failure_message"] = f"subprocess exit {proc.returncode}, no CSV output"[:300]
+        crash["attempt"] = "1"
+        for n in ("critic_iterations", "wallclock_s", "oracle_steps",
+                  "tokens_in_total", "tokens_out_total"):
+            crash[n] = "0"
+        writer.writerow(crash)
+        return
+    # Append every emitted row (should be one).
+    csv_file.write(line[-1] + "\n")
+
+
 def run_batch(
     seeds: Iterable[str],
     *,
@@ -103,6 +164,7 @@ def run_batch(
     resume: bool = True,
     repo_id: str | None = None,
     log: Callable[[str], None] = print,
+    use_subprocess: bool = True,
 ) -> BatchSummary:
     """Run each seed through run_with_critic, append a row to batch_log.csv.
 
@@ -145,6 +207,33 @@ def run_batch(
             log(f"\n[batch] {i}/{len(seeds_list)}  seed={seed!r}  task_id={task_id}")
             summary.attempted += 1
             try:
+                if use_subprocess:
+                    _run_task_in_subprocess(
+                        seed=seed, task_id=task_id,
+                        dataset_name=dataset_name, repo_id=repo_id,
+                        backend=backend,
+                        max_critic_iterations=max_critic_iterations,
+                        csv_file=csv_file, writer=writer, log=log,
+                    )
+                    csv_file.flush()
+                    # Re-read latest row to update summary.
+                    csv_file.close()
+                    with log_path.open(newline="") as rf:
+                        rows = list(csv.DictReader(rf))
+                    last_row = rows[-1] if rows else None
+                    csv_file = log_path.open("a", newline="")
+                    writer = csv.DictWriter(csv_file, fieldnames=LOG_FIELDS)
+                    if last_row and last_row.get("success", "").lower() == "true":
+                        summary.succeeded += 1
+                    log(f"[batch] result: success="
+                        f"{last_row.get('success') if last_row else '?'} "
+                        f"critic_iter={last_row.get('critic_iterations') if last_row else '?'} "
+                        f"wallclock={last_row.get('wallclock_s') if last_row else '?'}s")
+                    if stop_flag["stop"]:
+                        log("[batch] stopping after current task.")
+                        break
+                    continue
+
                 result = run_with_critic(
                     seed=seed,
                     dataset_name=dataset_name,
