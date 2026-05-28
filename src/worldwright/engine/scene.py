@@ -88,11 +88,42 @@ class WorldwrightScene:
     def add_box(
         self,
         name: str,
-        size: Vec3,
-        pos: Vec3,
+        size: Vec3 | None = None,
+        pos: Vec3 | None = None,
         color: RGB | None = None,
+        **kwargs: Any,
     ) -> EntityHandle:
+        """Add a rigid box. Tolerates LLM-typical kwarg drift:
+
+        * ``half_size`` / ``half_extents`` / ``half_extent`` → doubled into ``size``
+        * ``dimensions`` / ``extents`` → used as ``size``
+        * ``position`` → used as ``pos``
+        * ``rgba`` → first 3 components used as ``color``
+        Unknown kwargs are quietly ignored so LLM hallucinations don't crash.
+        """
         self._check_unbuilt()
+        if size is None:
+            for alias in ("dimensions", "extents", "size"):
+                if alias in kwargs and kwargs[alias] is not None:
+                    size = tuple(kwargs.pop(alias))
+                    break
+        for alias in ("half_size", "half_extents", "half_extent"):
+            if size is None and alias in kwargs and kwargs[alias] is not None:
+                half = kwargs.pop(alias)
+                size = tuple(2 * float(x) for x in half)
+                break
+        if size is None:
+            raise TypeError("add_box requires size (or half_size/dimensions)")
+        if pos is None:
+            for alias in ("position", "pos"):
+                if alias in kwargs and kwargs[alias] is not None:
+                    pos = tuple(kwargs.pop(alias))
+                    break
+        if pos is None:
+            raise TypeError("add_box requires pos (or position)")
+        if color is None and "rgba" in kwargs and kwargs["rgba"] is not None:
+            color = tuple(kwargs.pop("rgba")[:3])
+        # Silently drop unknown kwargs (mass, friction, fixed, density, ...).
         morph_kwargs: dict[str, Any] = {"size": tuple(size), "pos": tuple(pos)}
         morph = gs.morphs.Box(**morph_kwargs)
         surface = None
@@ -123,7 +154,15 @@ class WorldwrightScene:
         self._entities[name] = h
         return h
 
-    def add_franka(self, name: str = "franka") -> FrankaHandle:
+    def add_franka(
+        self,
+        name: str = "franka",
+        **kwargs: Any,
+    ) -> FrankaHandle:
+        """Add the Franka Panda at the origin. Extra kwargs (base_pos, pose,
+        fixed, ...) are silently ignored -- the Panda is always anchored at the
+        scene origin in M1/M2.
+        """
         self._check_unbuilt()
         if self._franka is not None:
             raise RuntimeError("Scene already has a Franka")

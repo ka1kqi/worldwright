@@ -28,14 +28,11 @@ The function receives one argument: `scene`, a WorldwrightScene. Available metho
 
     scene.add_box(
         name: str,
-        size: tuple[float, float, float],          # (sx, sy, sz) in metres -- FULL size, not half
-        pos:  tuple[float, float, float],          # (x, y, z) of centre
-        color: tuple[float, float, float] | None = None,   # (r, g, b) 0-1
+        size: tuple[float, float, float],          # FULL size in metres (not half)
+        pos:  tuple[float, float, float],          # (x, y, z) of the centre
+        color: tuple[float, float, float] | None = None,   # (r, g, b) in [0, 1]
     ) -> EntityHandle
         Add a rigid box.
-        VALID kwargs only: name, size, pos, color. Do NOT use half_extents,
-        dimensions, position, rgba, mass, friction, density, fixed, or any
-        other names — they will raise TypeError.
 
     scene.add_franka(name: str = "franka") -> FrankaHandle
         Add the Franka Panda at the origin. Always call this exactly once.

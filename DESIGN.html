@@ -57,7 +57,7 @@
 
 <h1>Worldwright</h1>
 <p class="lede">An LLM/VLM agent that autonomously authors simulation tasks in Genesis World 1.0 &mdash; a modern reimplementation of RoboGen built on the new <code>genesis</code> physics stack.</p>
-<p class="meta">Design v0.0.3 &middot; M1 complete (7/7 tickets) &middot; Targets Apple M2 (Metal) first, cloud NVIDIA later.</p>
+<p class="meta">Design v0.0.4 &middot; M1 complete (7/7) &middot; M2 in progress (6/7 sub-tickets shipped, acceptance batch running) &middot; Targets Apple M2 (Metal) first, cloud NVIDIA later.</p>
 <p class="meta">Live tracker: <a href="https://github.com/ka1kqi/worldwright/milestones" target="_blank" rel="noopener">github.com/ka1kqi/worldwright/milestones</a></p>
 
 <nav class="nav">
@@ -348,6 +348,26 @@ class SceneState:
 <tr><td>M1.6</td><td>LeRobot writer + raw NPZ shadow</td><td><span class="badge ok">done</span> 1 episode / 650 frames reload, NPZ shapes match</td></tr>
 <tr><td>M1.7</td><td>Pipeline orchestrator + smoke test</td><td><span class="badge ok">done</span> end-to-end PASS attempt 1/3, 110 s, ~&dollar;0.10, terminal cube z = 0.167</td></tr>
 </tbody></table>
+
+<h3>M2 sub-tickets — live progress</h3>
+<table>
+<thead><tr><th>#</th><th>Outcome</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>M2.1</td><td>Critic agent (failure-aware patcher) — <code>PatchOracle | PatchSuccess | PatchScene | Unsolvable</code></td><td><span class="badge ok">done</span> diagnoses canonical 5-cm-cube failure, lowers reach_z + force + adds wait</td></tr>
+<tr><td>M2.2</td><td>Critic-aware pipeline loop <code>run_with_critic</code></td><td><span class="badge ok">done</span> patches in-flight artifacts, re-runs from compile forward, tracks <code>critic_iterations</code></td></tr>
+<tr><td>M2.3</td><td>Loosen Proposer for variety + remove sweet-spot bias</td><td><span class="badge ok">done</span> varied size/color/position prompt, 4 worked examples</td></tr>
+<tr><td>M2.4</td><td>Batch pipeline runner with resume / SIGINT handling</td><td><span class="badge ok">done</span> 86-seed file, deterministic task_ids, batch_log.csv</td></tr>
+<tr><td>M2.5</td><td>Validity-metrics aggregator + Rich dashboard</td><td><span class="badge ok">done</span> valid_rate, first_try, critic stats, tokens, failure breakdown</td></tr>
+<tr><td>M2.6</td><td>Diversity report (object counts, type entropy, size buckets, spatial-layout entropy on 8&times;8 grid, skill tags)</td><td><span class="badge ok">done</span> markdown emitter, all metrics from <em>DESIGN.html &sect;7.2</em> minus deferred reward-clustering</td></tr>
+<tr><td>M2.7</td><td>Acceptance batch (&ge; 50 validated tasks, valid_rate &ge; 0.5)</td><td><span class="badge warn">batch running</span> 86-seed M2.7 in progress; results land in next commit</td></tr>
+</tbody></table>
+
+<h4>Engineering finds during M2</h4>
+<ul>
+  <li><strong>LeRobot 0.5.x schema is per-dataset, not per-episode.</strong> Per-task object features broke batch appending; switched to a fixed <code>observation.target_pose</code> + per-frame <code>task</code> NL string.</li>
+  <li><strong>Wrapper now tolerates LLM kwarg drift.</strong> SceneCoder occasionally emits <code>half_size</code> / <code>dimensions</code> / <code>base_pos</code>; <code>add_box</code> + <code>add_franka</code> map common aliases or drop unknown kwargs instead of crashing. Prompt explicitness alone wasn't enough — telling Sonnet "do NOT use X" sometimes primed it to invent X-adjacent names.</li>
+  <li><strong>Critic limited to LLM-fixable stages.</strong> <code>dataset_write</code> failures (schema mismatches, LeRobot constraint violations) are infra, not LLM. Pipeline now skips Critic on those and surfaces them directly.</li>
+</ul>
 
 <h3>Coarse milestones</h3>
 <table>
