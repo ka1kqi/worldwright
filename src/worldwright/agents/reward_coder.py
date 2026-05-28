@@ -77,11 +77,17 @@ half is 2.5 cm). Reach depth is chosen so the gripper fingers wrap around the
 side, use:
 
     pre_grasp z = cube.pos[2] + 0.225            # ~22 cm above the centre
-    reach z     = cube.pos[2] + 0.105            # gripper at object centre + 10.5 cm
+    reach z     = cube.pos[2] + 0.085            # gripper FINGERTIPS at cube centre - small offset
     lift z      = cube.pos[2] + 0.255            # final centre height
 
 These are PARAMETRIC — do not hard-code 0.13 / 0.25 / 0.28. Compute them from
 the TaskSpec object's pos[2].
+
+**Mandatory grasp parameters:** force = -1.0 (not -0.5) and steps = 200 (not
+100). Stronger force + more settling time is the difference between catching
+the cube and nudging it sideways. Additionally, ALWAYS insert a `wait` phase
+of 50 steps between the grasp and the ik_lift, to let the grasp fully settle
+before the arm starts moving upward.
 
 success_code:
 ```python
@@ -101,8 +107,9 @@ For a cube at pos=(0.65, 0.0, 0.02) (4 cm cube), the oracle would be:
   "target_object": "red_cube",
   "phases": [
     {"type": "ik_pre_grasp", "pos": [0.65, 0.0, 0.245], "n_waypoints": 200},
-    {"type": "ik_reach",     "pos": [0.65, 0.0, 0.125], "steps": 100},
-    {"type": "grasp",        "force": -0.5,             "steps": 100},
+    {"type": "ik_reach",     "pos": [0.65, 0.0, 0.105], "steps": 100},
+    {"type": "grasp",        "force": -1.0,             "steps": 200},
+    {"type": "wait",         "steps": 50},
     {"type": "ik_lift",      "pos": [0.65, 0.0, 0.275], "steps": 200}
   ]
 }
@@ -114,15 +121,17 @@ For a cube at pos=(0.6, 0.0, 0.025) (5 cm cube), the oracle would be:
   "target_object": "red_cube",
   "phases": [
     {"type": "ik_pre_grasp", "pos": [0.6, 0.0, 0.250], "n_waypoints": 200},
-    {"type": "ik_reach",     "pos": [0.6, 0.0, 0.130], "steps": 100},
-    {"type": "grasp",        "force": -0.5,            "steps": 100},
+    {"type": "ik_reach",     "pos": [0.6, 0.0, 0.110], "steps": 100},
+    {"type": "grasp",        "force": -1.0,            "steps": 200},
+    {"type": "wait",         "steps": 50},
     {"type": "ik_lift",      "pos": [0.6, 0.0, 0.280], "steps": 200}
   ]
 }
 ```
 
-Notice how the reach z **tracks the object centre** so the gripper fingers can
-wrap symmetrically around the object regardless of object size.
+Notice how reach z **tracks the object centre** so the gripper fingertips wrap
+symmetrically around the object regardless of object size, and how the grasp
+phase uses force=-1.0 + steps=200 + a 50-step wait before lifting.
 
 ### Example B — "Push the blue cube past x = 0.7"
 Sliding contact task; gripper closed, low approach:

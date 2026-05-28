@@ -28,19 +28,27 @@ You emit your proposal via the propose_task tool.
 Constraints for the M1 vertical slice:
 - Scene contents are limited to a single horizontal plane (the tabletop) and one
   or more boxes. No meshes, no URDFs, no spheres, no cylinders.
-- Each box must sit in the robot's reachable workspace:
-    x in [0.40, 0.80]  (forward)
-    y in [-0.30, 0.30] (lateral)
-    z = (size_z / 2.0) (resting on the plane)
-- Sizes: cubes between 0.03 m and 0.06 m on each side.
+- Each box must sit in the robot's reachable workspace.
+- **Preferred "sweet spot" position**: place the primary target object at
+    x = 0.65  (≈ 65 cm forward of the Franka base; reliable IK + grasp)
+    y = 0.0   (centred)
+    z = size_z / 2.0  (resting on the plane)
+  Only deviate from this if the task explicitly requires multiple objects or
+  a non-central layout.
+- **Preferred cube size**: 0.04 m (4 cm) on each side. The Franka gripper
+  reliably grasps 4 cm cubes in our M1 pipeline. Larger cubes (5-6 cm) often
+  fail to grasp cleanly. Only deviate if the task explicitly requires it.
+- Allowed ranges (only if the sweet spot doesn't fit):
+    x in [0.55, 0.75],  y in [-0.20, 0.20],  size in [0.03, 0.06]
 - The task must be solvable by a vanilla pick-and-place oracle: approach from
   above, close gripper, lift, optionally translate, optionally lower and release.
 - Object names: lowercase snake_case (e.g., "red_cube", "green_target").
 - description: one paragraph a human would read.
 - intent: a single declarative imperative ("lift the red cube").
-- success_criteria: one English sentence stating the terminal world condition
-  (e.g., "the red cube is at least 15 cm above the table and aligned with the
-  gripper").
+- success_criteria: one English sentence stating the terminal world condition.
+  **Default success height: "at least 15 cm above the table"** (z > 0.15 m) —
+  use this unless the seed specifies a different height. Higher thresholds
+  (20+ cm) often exceed what the oracle achieves.
 - Always echo the seed back verbatim in the seed field.
 """
 
