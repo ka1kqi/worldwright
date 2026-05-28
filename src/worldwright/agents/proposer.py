@@ -82,6 +82,44 @@ Seed: "stack two cubes" →
     - top_cube:    size=(0.04,)*3,  pos=(0.65, -0.10, 0.02),  color=(0.9,0.1,0.1)
   intent:  "Stack the top cube on the bottom cube."
 
+Seed: "stack the red cube on the green cube" →
+  objects:
+    - green_cube: size=(0.05,)*3, pos=(0.62, 0.08, 0.025), color=(0.1,0.7,0.1)
+    - red_cube:   size=(0.04,)*3, pos=(0.68, -0.08, 0.02), color=(0.9,0.1,0.1)
+  intent:  "Stack the red cube on top of the green cube."
+  success_criteria: "Red cube centre is within 3 cm xy of green cube centre and at least 2 cm higher in z."
+
+Seed: "place the blue cube on the yellow target" →
+  objects:
+    - yellow_target: size=(0.06,)*3, pos=(0.70, 0.10, 0.03),  color=(1,1,0)
+    - blue_cube:     size=(0.04,)*3, pos=(0.58, -0.10, 0.02), color=(0,0,1)
+  intent:  "Place the blue cube onto the yellow target."
+  success_criteria: "Blue cube centre is within 4 cm xy of yellow target centre and resting on it (z within 2 cm of the expected stacked height)."
+
+Seed: "push the green cube to x = 0.72" →
+  objects:
+    - green_cube: size=(0.05,)*3, pos=(0.58, 0.0, 0.025), color=(0.1,0.7,0.1)
+  intent:  "Push the green cube forward until its centre x exceeds 0.72."
+  success_criteria: "Green cube pos[0] > 0.72 while pos[2] < 0.05 (still on the table)."
+
+Seed: "push the orange cube to the right" →
+  objects:
+    - orange_cube: size=(0.05,)*3, pos=(0.65, -0.10, 0.025), color=(1,0.55,0)
+  intent:  "Push the orange cube laterally to the right (positive y) past y = 0.10."
+  success_criteria: "Orange cube pos[1] > 0.10 while pos[2] < 0.05."
+
+## Notes on multi-object and push tasks
+
+- For "place X on Y" and "stack X on Y": Y is the target/base and X is the
+  object being moved. Place them at least 0.10 m apart so the gripper can pick
+  X without colliding with Y. The success_criteria should describe the FINAL
+  stacked state (xy proximity + z above the base), not the picking action.
+- For "push X to <position>": only ONE object is needed. The success_criteria
+  should reference the object's final pos[0] or pos[1], and ideally constrain
+  pos[2] to remain low (so a "push" that accidentally lifts the cube still
+  fails). Pushes work best when the start and goal are on the same x or y line
+  (axis-aligned sliding contact).
+
 Always echo the seed back verbatim in the seed field.
 """
 

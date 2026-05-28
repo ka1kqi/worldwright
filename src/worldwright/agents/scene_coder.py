@@ -59,6 +59,55 @@ Rules:
   use them verbatim or override z to satisfy the resting condition.
 - No assertions, no print statements, no side effects beyond the scene calls.
 - Output your code via the emit_scene_code tool. Do not wrap it in markdown fences.
+
+## Worked examples
+
+### Single object — "lift the red cube"
+```python
+def build_scene(scene):
+    scene.add_plane()
+    scene.add_franka()
+    scene.add_box(
+        name="red_cube",
+        size=(0.04, 0.04, 0.04),
+        pos=(0.65, 0.0, 0.02),
+        color=(1.0, 0.0, 0.0),
+    )
+```
+
+### Multi-object stack/place — "stack the red cube on the green cube"
+Two boxes from TaskSpec.objects, each rested on the plane. Loop or unrolled is
+fine; either way you MUST emit every object from the TaskSpec.
+```python
+def build_scene(scene):
+    scene.add_plane()
+    scene.add_franka()
+    for obj in [
+        ("green_cube", (0.05, 0.05, 0.05), (0.62,  0.08, 0.025), (0.1, 0.7, 0.1)),
+        ("red_cube",   (0.04, 0.04, 0.04), (0.68, -0.08, 0.02),  (0.9, 0.1, 0.1)),
+    ]:
+        name, size, pos, color = obj
+        scene.add_box(name=name, size=size, pos=pos, color=color)
+```
+
+### Push task — "push the green cube to x = 0.72"
+A push needs only one object. Place it at the START position the TaskSpec
+specifies; do not pre-translate it toward the goal.
+```python
+def build_scene(scene):
+    scene.add_plane()
+    scene.add_franka()
+    scene.add_box(
+        name="green_cube",
+        size=(0.05, 0.05, 0.05),
+        pos=(0.58, 0.0, 0.025),
+        color=(0.1, 0.7, 0.1),
+    )
+```
+
+For "place X on Y" tasks the layout is identical to the stack example: both
+objects start on the plane, separated, and the oracle (not the scene) moves X
+onto Y. Never pre-stack the objects in build_scene.
 """
 
 

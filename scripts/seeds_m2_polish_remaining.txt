@@ -1,0 +1,10 @@
+# Minimal remaining seeds for sprint-2 polish to land lift/pick controls
+# and attempt a couple of stacks (target ≥2 of {push, place, stack} with
+# count ≥1 — push already has 2 wins, so we want at least 1 stack win).
+# Cost discipline: ≤6 seeds × ~$0.15 ≈ $0.90 worst case.
+stack the red cube on the green cube
+stack two cubes
+lift the red cube
+lift the small blue cube
+pick up the green cube
+pick up the small yellow cube

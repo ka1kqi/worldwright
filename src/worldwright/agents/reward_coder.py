@@ -134,7 +134,13 @@ symmetrically around the object regardless of object size, and how the grasp
 phase uses force=-1.0 + steps=200 + a 50-step wait before lifting.
 
 ### Example B — "Push the blue cube past x = 0.7"
-Sliding contact task; gripper closed, low approach:
+There is NO dedicated `push` phase type. Compose a push from the existing
+primitives: approach behind the cube with the gripper closed, then use one or
+more `ik_reach` phases to translate the closed gripper through the cube
+along the desired axis. Keep the reach z just above the cube's centre so the
+gripper face contacts the side of the cube, not the top.
+
+For a cube at pos=(0.55, 0.0, 0.025) (5 cm cube) pushing to x>0.70:
 
 success_code:
 ```python
@@ -142,7 +148,7 @@ def success(state):
     cube = state.objects.get("blue_cube")
     if cube is None:
         return False
-    return bool(cube.pos[0] > 0.70)
+    return bool(cube.pos[0] > 0.70 and cube.pos[2] < 0.05)
 ```
 
 oracle:
@@ -150,13 +156,19 @@ oracle:
 {
   "target_object": "blue_cube",
   "phases": [
-    {"type": "ik_pre_grasp", "pos": [0.50, 0.0, 0.10], "n_waypoints": 200},
-    {"type": "grasp",        "force": -0.5,            "steps": 50},
-    {"type": "ik_reach",     "pos": [0.55, 0.0, 0.04], "steps": 100},
-    {"type": "ik_reach",     "pos": [0.75, 0.0, 0.04], "steps": 200}
+    {"type": "grasp",        "force": -1.0,             "steps": 80},
+    {"type": "ik_pre_grasp", "pos": [0.45, 0.0, 0.15],  "n_waypoints": 200},
+    {"type": "ik_reach",     "pos": [0.45, 0.0, 0.035], "steps": 120},
+    {"type": "ik_reach",     "pos": [0.78, 0.0, 0.035], "steps": 300}
   ]
 }
 ```
+
+Notes for push: (1) close the gripper FIRST so the fingers act as a flat
+pushing face; (2) start the approach behind the cube along the push axis
+(here x≈0.45, behind a cube at x=0.55); (3) keep z low (just above the
+table) during the slide; (4) overshoot the goal slightly in the final reach
+so the cube actually crosses the threshold.
 
 ### Example C — "Stack the small red cube on top of the green cube"
 
@@ -173,8 +185,59 @@ def success(state):
     return bool(xy_err < 0.03 and z_above > 0.02)
 ```
 
-oracle is two pick-and-place cycles. Always include n_waypoints on the FIRST
-ik_pre_grasp of each cycle; subsequent IK phases can use steps alone.
+For red_cube=(0.68, -0.08, 0.02) (4 cm) and green_cube=(0.62, 0.08, 0.025)
+(5 cm), the oracle is a single pick-and-place cycle that picks `red_cube`
+and places it on top of `green_cube`. Target xy = green_cube.pos[:2]; target
+z = green_cube.pos[2] + green_size/2 + red_size/2 + small_clearance.
+
+oracle:
+```json
+{
+  "target_object": "red_cube",
+  "phases": [
+    {"type": "ik_pre_grasp", "pos": [0.68, -0.08, 0.245], "n_waypoints": 200},
+    {"type": "ik_reach",     "pos": [0.68, -0.08, 0.105], "steps": 100},
+    {"type": "grasp",        "force": -1.0,               "steps": 200},
+    {"type": "wait",         "steps": 50},
+    {"type": "ik_lift",      "pos": [0.68, -0.08, 0.275], "steps": 200},
+    {"type": "ik_reach",     "pos": [0.62,  0.08, 0.275], "steps": 200},
+    {"type": "ik_place",     "pos": [0.62,  0.08, 0.115], "steps": 200}
+  ]
+}
+```
+
+The `ik_place` phase opens the gripper at the end (release), letting the red
+cube settle on top of the green cube. Compute target z parametrically from
+both cube sizes — do not hard-code 0.115.
+
+### Example D — "Place the blue cube onto the yellow target"
+
+This is structurally identical to Example C: a single pick-and-place cycle
+that grasps the moved object and releases it above the target object. The
+only differences from a stack are (a) the target object may be wider, so
+xy proximity tolerance can be looser, and (b) the success check is usually
+"on top of the target" rather than the strict 3 cm xy of a stack.
+
+success_code:
+```python
+import numpy as np
+def success(state):
+    cube = state.objects.get("blue_cube")
+    target = state.objects.get("yellow_target")
+    if cube is None or target is None:
+        return False
+    xy_err = float(np.hypot(cube.pos[0] - target.pos[0], cube.pos[1] - target.pos[1]))
+    z_above = float(cube.pos[2] - target.pos[2])
+    return bool(xy_err < 0.04 and z_above > 0.015)
+```
+
+The oracle follows the Example C template — pick blue_cube, lift, traverse to
+the yellow_target's xy, then ik_place at z = target.pos[2] + target_size/2 +
+cube_size/2 + clearance.
+
+oracle is two pick-and-place cycles for stacks of three or more; for a single
+"place X on Y" it is exactly one cycle. Always include n_waypoints on the
+FIRST ik_pre_grasp of each cycle; subsequent IK phases can use steps alone.
 
 ## Quality checklist before emitting
 

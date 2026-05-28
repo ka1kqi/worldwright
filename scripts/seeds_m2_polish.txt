@@ -1,0 +1,32 @@
+# M2 polish seeds — explicit push / place / stack coverage.
+# Lines starting with # are ignored. One seed per line.
+#
+# Distribution:
+#   push  : 6
+#   place : 6
+#   stack : 6
+#   lift  : 2 (control)
+#   pick  : 2 (control)
+# total   : 22 (run with --limit 20 for the budget cap)
+push the green cube to x = 0.72
+push the blue cube to the right past y = 0.10
+push the red cube forward to x = 0.75
+push the yellow cube to the left past y = -0.10
+push the orange cube past x = 0.70
+push the small cube forward
+place the red cube on the green target
+place the blue cube onto the yellow target
+place the small red cube on the large green cube
+place the orange cube on the purple target
+place the white cube onto the black target
+place the small cube on the big cube
+stack the red cube on the green cube
+stack the small red cube on top of the green cube
+stack the blue cube on the yellow cube
+stack the small cube on the large cube
+stack the white cube on the black cube
+stack two cubes
+lift the red cube
+lift the small blue cube
+pick up the green cube
+pick up the small yellow cube
