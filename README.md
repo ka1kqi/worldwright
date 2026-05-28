@@ -38,6 +38,27 @@ Wires Proposer → SceneCoder → RewardCoder → Solver → Verifier → LeRobo
 
 Typical run: ~110 s wallclock, ~$0.10 in Anthropic tokens.
 
+### M2 video gallery — six tasks the agent authored and solved
+
+Each clip below is a Critic-aware pipeline run, replayed from the persisted manifest at `data/vs-m2/manifests/`. Different seed → different Proposer choice → different scene → different oracle, all from the same code path.
+
+| seed | rendered video |
+|---|---|
+| `lift the cube` (Proposer chose cyan) | [`assets/m2/vs-m2-lift-the-cube.mp4`](assets/m2/vs-m2-lift-the-cube.mp4) |
+| `lift the blue cube` | [`assets/m2/vs-m2-lift-the-blue-cube.mp4`](assets/m2/vs-m2-lift-the-blue-cube.mp4) |
+| `lift the green cube` | [`assets/m2/vs-m2-lift-the-green-cube.mp4`](assets/m2/vs-m2-lift-the-green-cube.mp4) |
+| `lift the yellow cube` | [`assets/m2/vs-m2-lift-the-yellow-cube.mp4`](assets/m2/vs-m2-lift-the-yellow-cube.mp4) |
+| `lift the orange cube` (Critic-recovered) | [`assets/m2/vs-m2-lift-the-orange-cube.mp4`](assets/m2/vs-m2-lift-the-orange-cube.mp4) |
+| `lift a tall cube` (Proposer chose a tall magenta block) | [`assets/m2/vs-m2-lift-a-tall-cube.mp4`](assets/m2/vs-m2-lift-a-tall-cube.mp4) |
+
+Reproduce any task:
+
+```bash
+.venv/bin/python scripts/replay_task.py \
+    --manifest data/vs-m2/manifests/<task_id>.json \
+    --mp4 assets/m2/<task_id>.mp4
+```
+
 ### Failure mode (M1.5 discovery)
 
 When the Proposer chooses a 5 cm cube but the RewardCoder copy-pastes reach-z values from a 4 cm-cube worked example, the gripper descends too low relative to the cube centre and nudges it aside during grasp. The Verifier catches this cleanly with `passed=False reason=success_never_fired` and a full diagnostic terminal state — exactly the surface the Critic (M2) consumes. Deterministic reproduction:
