@@ -1,0 +1,36 @@
+# Worldwright harness configuration
+# (Python robotics project — no web frontend / dev server.)
+
+stack:
+  frontend: none
+  backend: none            # pure Python library + CLIs
+  test_runner: pytest
+
+evaluator:
+  playwright: false        # no browser
+  api_tests: false         # no HTTP endpoints
+  max_iterations: 3        # cap retries per sprint
+  pass_threshold: 7        # /10 to pass
+
+dev_server:
+  start_cmd: ""            # not applicable
+  port: 0
+  health_check: ""
+
+# Project-specific notes for sub-agents
+project:
+  language: python
+  python: 3.12
+  venv: .venv
+  package_root: src/worldwright
+  external_dep_dir: ~/Documents/GitHub/genesis-world
+  env_file: .env           # contains ANTHROPIC_API_KEY (gitignored)
+  llm_costs: |
+    Each pipeline run costs ~$0.06–0.15 in Anthropic tokens.
+    Be mindful before authorising large batches — propose seed counts
+    explicitly and ask before spending more than $5 in one sprint.
+  hardware: |
+    Apple M2 Metal (no NVIDIA CUDA locally).
+    Genesis World 1.0 visualizer has a known headless-macOS crash;
+    src/worldwright/engine/scene.py monkey-patches _rasterizer._context
+    when no cameras are attached. Don't undo this.

@@ -2,10 +2,11 @@
 
 Reads a failed PipelineResult and emits a structured patch:
 
-    PatchOracle    — tweak only the oracle plan (most common)
-    PatchSuccess   — re-emit success() + oracle (success threshold wrong)
-    PatchScene     — re-emit build_scene (scene malformed; rare)
-    Unsolvable     — give up cleanly with a reason
+    PatchOracle             — tweak only the oracle plan (most common)
+    PatchSuccess            — re-emit success() + oracle (oracle also needs to move)
+    PatchSuccessThreshold   — re-emit success() only; reuse the existing oracle
+    PatchScene              — re-emit build_scene (scene malformed; rare)
+    Unsolvable              — give up cleanly with a reason
 
 The patch is then applied by the pipeline orchestrator and the relevant
 downstream stages re-run. Critic itself never re-calls the Proposer.
@@ -43,6 +44,18 @@ class PatchSuccess(BaseModel):
     rationale: str
 
 
+class PatchSuccessThreshold(BaseModel):
+    """Light-weight success() rewrite that keeps the oracle plan as-is.
+
+    Use when the oracle already drives the cube to a physically sensible
+    state, but the success() thresholds (z cutoff, xy_err) are overstated
+    relative to what the oracle plan can actually achieve.
+    """
+    kind: Literal["patch_success_threshold"] = "patch_success_threshold"
+    success_code: str
+    rationale: str
+
+
 class PatchScene(BaseModel):
     kind: Literal["patch_scene"] = "patch_scene"
     scene_code: str
@@ -54,7 +67,9 @@ class Unsolvable(BaseModel):
     reason: str
 
 
-CritiquePatch = Union[PatchOracle, PatchSuccess, PatchScene, Unsolvable]
+CritiquePatch = Union[
+    PatchOracle, PatchSuccess, PatchSuccessThreshold, PatchScene, Unsolvable,
+]
 
 
 # ---------- Tool schema (flat, with discriminator) ----------
@@ -71,7 +86,13 @@ def get_tool_schema() -> dict[str, Any]:
             "properties": {
                 "patch_kind": {
                     "type": "string",
-                    "enum": ["patch_oracle", "patch_success", "patch_scene", "unsolvable"],
+                    "enum": [
+                        "patch_oracle",
+                        "patch_success",
+                        "patch_success_threshold",
+                        "patch_scene",
+                        "unsolvable",
+                    ],
                     "description": "Which kind of patch to emit.",
                 },
                 "rationale": {
@@ -84,7 +105,10 @@ def get_tool_schema() -> dict[str, Any]:
                 "oracle": OracleHint.model_json_schema(),
                 "success_code": {
                     "type": "string",
-                    "description": "New def success(state) source. Only for patch_success.",
+                    "description": (
+                        "New def success(state) source. Required for patch_success "
+                        "AND patch_success_threshold."
+                    ),
                 },
                 "scene_code": {
                     "type": "string",
@@ -111,6 +135,10 @@ def _validate_patch(payload: dict[str, Any]) -> CritiquePatch:
         return PatchSuccess(
             success_code=payload["success_code"], oracle=oracle, rationale=rationale,
         )
+    if kind == "patch_success_threshold":
+        return PatchSuccessThreshold(
+            success_code=payload["success_code"], rationale=rationale,
+        )
     if kind == "patch_scene":
         return PatchScene(scene_code=payload["scene_code"], rationale=rationale)
     if kind == "unsolvable":
@@ -123,24 +151,36 @@ def _validate_patch(payload: dict[str, Any]) -> CritiquePatch:
 SYSTEM = """You are the Critic. The worldwright pipeline tried to validate a task and FAILED.
 Your job: diagnose the failure and emit ONE structured patch via the emit_patch tool.
 
-You must choose ONE of four patch kinds:
+You must choose ONE of five patch kinds:
 
-    patch_oracle    Tweak only the OracleHint (most common). Reuse the same
-                    success_code; just adjust pos / quat / force / steps in
-                    one or more phases.
+    patch_oracle             Tweak only the OracleHint (most common). Reuse
+                             the same success_code; just adjust pos / quat /
+                             force / steps in one or more phases.
 
-    patch_success   Re-emit BOTH success() and oracle. Use this when the
-                    success threshold is wrong (e.g. demands z > 0.25 but
-                    oracle only reaches z = 0.18, even though the task is
-                    physically solvable).
+    patch_success            Re-emit BOTH success() and oracle. Use this when
+                             BOTH the threshold AND the oracle plan need to
+                             move (e.g. you want to land the cube at a
+                             different xy, AND relax the xy_err threshold).
 
-    patch_scene     Re-emit only build_scene. Use this when the scene_code
-                    crashed during build or produced an obviously broken
-                    scene (objects overlapping the robot, etc.). Rare.
+    patch_success_threshold  Re-emit ONLY success(); keep the existing oracle
+                             verbatim. Use this when the oracle already
+                             drives the cube to a physically sensible state,
+                             but the success thresholds are overstated
+                             relative to what's actually achievable (e.g.
+                             demands z > 0.20 but oracle peaks at z = 0.18,
+                             or demands xy_err < 0.03 but the cube drifts
+                             0.04 m during grasp+lift). This is the lightest
+                             possible fix when the *measurement* is the
+                             problem, not the *plan*.
 
-    unsolvable      The task as described is fundamentally not achievable
-                    with our M1 Franka+gripper setup. Give a one-paragraph
-                    reason. Use sparingly.
+    patch_scene              Re-emit only build_scene. Use this when the
+                             scene_code crashed during build or produced an
+                             obviously broken scene (objects overlapping the
+                             robot, etc.). Rare.
+
+    unsolvable               The task as described is fundamentally not
+                             achievable with our M1 Franka+gripper setup.
+                             Give a one-paragraph reason. Use sparingly.
 
 ## Diagnostic guide
 
@@ -176,10 +216,16 @@ oracle, and a VerifierReport (when verify ran). The VerifierReport tells you:
      -> GRASP FAILED. patch_oracle: lower reach_z by 0.01-0.02 (fingertips need
         to wrap the cube more deeply) and/or set grasp.force=-1.5, grasp.steps=200.
    - cube_terminal_z above initial_z but below success threshold
-     -> LIFT FELL SHORT. patch_oracle: increase ik_lift target z to threshold + 0.05.
+     -> LIFT FELL SHORT. First try patch_oracle: increase ik_lift target z to
+        threshold + 0.05. BUT if the ik_lift target z is already at/near the
+        physical ceiling (~0.30 m for Franka in tabletop config) OR the lift
+        target was already at success_threshold + 0.05 and still fell short,
+        the threshold itself is overstated -> patch_success_threshold: lower
+        the z cutoff to (cube_terminal_z - 0.005) so it matches reality.
    - cube_terminal_z >= success threshold by a lot
      -> success() criteria itself wrong (e.g. xy_err threshold too tight).
-        patch_success: relax the success_code thresholds.
+        patch_success_threshold: relax the success_code thresholds (xy_err,
+        gripper-distance gate), keep oracle unchanged.
    - cube ended OFF the table (z = 0)
      -> Cube fell. patch_oracle: tighten grasp (force=-1.5) and add a wait
         phase of 100 steps after grasp to let it settle before lift.
@@ -192,6 +238,58 @@ oracle, and a VerifierReport (when verify ran). The VerifierReport tells you:
    - LLM call failed (rare; usually transient API). Don't retry from Critic;
      return unsolvable with reason "agent_call_failed: <details>" and let
      the pipeline higher level decide whether to re-attempt the whole task.
+
+## Failure-pattern decision tree
+
+These are the three high-frequency M2 failure modes observed in the
+vs-m2 batch (10/86 verify-stage failures). Match the symptom to the
+prescribed patch BEFORE falling back to a generic patch_oracle.
+
+A. **Overstated success threshold** (e.g. "raise the cube to 20 cm",
+   "lift the cube to 15 cm", "hoist the cube").
+   - Symptom: cube_terminal_z is consistently *above* the cube's initial_z
+     by >= 0.10 m (i.e. the grasp + lift physically worked) but is BELOW the
+     numeric z cutoff hard-coded in success_code. The oracle's own ik_lift
+     target z is at or above the success threshold; the cube just doesn't
+     quite reach it because of finger compliance / IK error.
+   - Fix: patch_success_threshold. Lower the z cutoff in success() to
+     (cube_terminal_z - 0.005). Do NOT also bump the oracle -- the oracle is
+     already trying its best.
+
+B. **Edge-of-workspace IK** (e.g. "lift a cube far back", "lift a cube in
+   the front", "lift a cube on the left/right side").
+   - Symptom: cube_terminal_z ~ initial_z (cube barely moved) AND the
+     cube's initial xy is at the periphery of the Franka workspace:
+     x < 0.45 m or x > 0.75 m, |y| > 0.25 m. The ik_pre_grasp / ik_reach
+     phases either ran but produced near-zero ee motion (IK clamped) or
+     the reach pose was unreachable. ee_pos in terminal_state ends up far
+     from the cube (xy distance > 0.05 m).
+   - Fix: patch_oracle. Move the pre_grasp / reach / lift targets to xy
+     coordinates that are within the safe workspace box
+     (x in [0.50, 0.70], y in [-0.20, 0.20]) AND ALSO change the lift
+     destination to the same in-workspace xy so the cube ends up where the
+     success() check expects. If success() pins on the original cube xy,
+     also relax xy_err in success_code via patch_success.
+     If the cube itself is unreachable (initial pos outside the box),
+     escalate to unsolvable with reason "task position outside Franka
+     workspace box (x,y)=(...)".
+
+C. **Small-cube 3 cm grasp** (e.g. "lift the small ... cube",
+   "grasp the small white/black cube", "pick up the small red cube").
+   - Symptom: cube has size ~0.03 m (note: success of small cubes at 5 cm
+     is fine; the dangerous case is when size <= 0.035). cube_terminal_z
+     remains within +/- 0.005 m of initial_z (grasp slipped). ee_pos in
+     terminal_state is roughly where the cube was, but the cube did not
+     come along.
+   - Fix: patch_oracle, two-pronged:
+       (1) ik_reach.pos[2] should be initial_cube_z + half_size - 0.008
+           (i.e. fingertips dip BELOW the cube's vertical centre so the
+           cube sits between the pads, not pinched at the top edge).
+       (2) grasp.force = -1.5 (was -0.5 / -1.0), grasp.steps = 200, and
+           ADD a wait phase of 80-100 steps right after the grasp so the
+           cube settles into the pads before ik_lift starts pulling.
+     Do NOT relax success() for small-cube failures -- the issue is grip,
+     not measurement.
 
 ## Hard rules
 

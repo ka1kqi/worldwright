@@ -19,6 +19,7 @@ from worldwright.agents import (
     PatchOracle,
     PatchScene,
     PatchSuccess,
+    PatchSuccessThreshold,
     Unsolvable,
     critique,
     emit_reward,
@@ -327,7 +328,7 @@ def _run_from_compile_onward(
 def run_with_critic(
     seed: str,
     *,
-    max_critic_iterations: int = 3,
+    max_critic_iterations: int = 4,
     dataset_name: str = "vs-m2",
     backend: str = "metal",
     repo_id: str = "ka1kqi/worldwright-vs-m2",
@@ -402,6 +403,11 @@ def run_with_critic(
             new_success = SuccessSpec(
                 success_code=patch.success_code,
                 oracle=patch.oracle,
+            )
+        elif isinstance(patch, PatchSuccessThreshold):
+            new_success = SuccessSpec(
+                success_code=patch.success_code,
+                oracle=result.success_spec.oracle,
             )
 
         result = _run_from_compile_onward(

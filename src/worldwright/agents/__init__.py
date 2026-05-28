@@ -4,6 +4,7 @@ from .critic import (
     PatchOracle,
     PatchScene,
     PatchSuccess,
+    PatchSuccessThreshold,
     Unsolvable,
     critique,
 )
@@ -18,6 +19,7 @@ __all__ = [
     "PatchOracle",
     "PatchScene",
     "PatchSuccess",
+    "PatchSuccessThreshold",
     "Unsolvable",
     "critique",
     "emit_reward",

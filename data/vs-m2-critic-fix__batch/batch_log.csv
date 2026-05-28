@@ -1,0 +1,14 @@
+task_id,seed,success,failure_stage,failure_message,attempt,critic_iterations,wallclock_s,oracle_steps,tokens_in_total,tokens_out_total,lerobot_root,manifest_path
+wright-lift-the-small-red-cube-1092c2c567,lift the small red cube,true,,,1,0,43.2,800,8354,894,data/vs-m2-critic-fix,data/vs-m2-critic-fix/manifests/wright-lift-the-small-red-cube-1092c2c567.json
+wright-hoist-the-cube-75a748daed,hoist the cube,false,verify,success_never_fired: success() returned False at terminal state,4,3,100.4,850,23201,3011,,
+wright-raise-the-cube-to-20-centimetres-3532fcabb2,raise the cube to 20 centimetres,false,verify,success_never_fired: success() returned False at terminal state,4,3,113.5,1100,23383,3086,,
+wright-lift-a-cube-far-back-50e4345228,lift a cube far back,false,verify,success_never_fired: success() returned False at terminal state,4,3,108.2,1050,23111,3300,,
+wright-hoist-the-cube-75a748daed,hoist the cube,true,,,1,0,34.9,800,8369,877,data/vs-m2-critic-fix,data/vs-m2-critic-fix/manifests/wright-hoist-the-cube-75a748daed.json
+wright-raise-the-cube-to-20-centimetres-3532fcabb2,raise the cube to 20 centimetres,false,verify,success_never_fired: success() returned False at terminal state,4,3,98.2,850,23281,3055,,
+wright-lift-a-cube-far-back-50e4345228,lift a cube far back,false,verify,success_never_fired: success() returned False at terminal state,4,3,98.1,1000,23068,3165,,
+wright-lift-a-cube-in-the-front-fd3eebb4e2,lift a cube in the front,false,verify,success_never_fired: success() returned False at terminal state,4,3,86.6,950,23174,3194,,
+wright-lift-a-small-cube-on-the-left-5d2a17dabf,lift a small cube on the left,false,verify,success_never_fired: success() returned False at terminal state,4,3,86.7,900,23333,3134,,
+wright-lift-a-small-cube-on-the-right-d517a2ada6,lift a small cube on the right,false,verify,success_never_fired: success() returned False at terminal state,4,3,85.1,850,23326,3157,,
+wright-raise-the-blue-cube-to-15-cm-a56e1231f2,raise the blue cube to 15 cm,true,,,1,0,35.1,800,8403,901,data/vs-m2-critic-fix,data/vs-m2-critic-fix/manifests/wright-raise-the-blue-cube-to-15-cm-a56e1231f2.json
+wright-grasp-the-small-white-cube-1fe9d3a9d8,grasp the small white cube,true,,,1,0,34.8,800,8355,921,data/vs-m2-critic-fix,data/vs-m2-critic-fix/manifests/wright-grasp-the-small-white-cube-1fe9d3a9d8.json
+wright-grasp-the-small-black-cube-f3a3120b49,grasp the small black cube,true,,,2,1,49.9,800,13313,1279,data/vs-m2-critic-fix,data/vs-m2-critic-fix/manifests/wright-grasp-the-small-black-cube-f3a3120b49.json

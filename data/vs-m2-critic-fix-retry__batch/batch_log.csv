@@ -1,0 +1,6 @@
+task_id,seed,success,failure_stage,failure_message,attempt,critic_iterations,wallclock_s,oracle_steps,tokens_in_total,tokens_out_total,lerobot_root,manifest_path
+wright-raise-the-cube-to-20-centimetres-3532fcabb2,raise the cube to 20 centimetres,true,,,2,1,55.4,800,13364,1290,data/vs-m2-critic-fix-retry,data/vs-m2-critic-fix-retry/manifests/wright-raise-the-cube-to-20-centimetres-3532fcabb2.json
+wright-lift-a-cube-far-back-50e4345228,lift a cube far back,false,verify,success_never_fired: success() returned False at terminal state,5,4,129.4,1350,28200,3949,,
+wright-lift-a-cube-in-the-front-fd3eebb4e2,lift a cube in the front,false,verify,success_never_fired: success() returned False at terminal state,5,4,104.9,850,28051,3761,,
+wright-lift-a-small-cube-on-the-left-5d2a17dabf,lift a small cube on the left,false,verify,success_never_fired: success() returned False at terminal state,5,4,103.5,850,28293,4033,,
+wright-lift-a-small-cube-on-the-right-d517a2ada6,lift a small cube on the right,false,verify,success_never_fired: success() returned False at terminal state,5,4,109.8,850,28384,4106,,
