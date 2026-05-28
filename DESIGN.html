@@ -57,7 +57,7 @@
 
 <h1>Worldwright</h1>
 <p class="lede">An LLM/VLM agent that autonomously authors simulation tasks in Genesis World 1.0 &mdash; a modern reimplementation of RoboGen built on the new <code>genesis</code> physics stack.</p>
-<p class="meta">Design v0.0.2 &middot; M1 in progress (5/7 tickets) &middot; Targets Apple M2 (Metal) first, cloud NVIDIA later.</p>
+<p class="meta">Design v0.0.3 &middot; M1 complete (7/7 tickets) &middot; Targets Apple M2 (Metal) first, cloud NVIDIA later.</p>
 <p class="meta">Live tracker: <a href="https://github.com/ka1kqi/worldwright/milestones" target="_blank" rel="noopener">github.com/ka1kqi/worldwright/milestones</a></p>
 
 <nav class="nav">
@@ -345,8 +345,8 @@ class SceneState:
 <tr><td>M1.3</td><td>Proposer + SceneCoder (Sonnet 4.6)</td><td><span class="badge ok">done</span> end-to-end PASS in ~10 s</td></tr>
 <tr><td>M1.4</td><td>RewardCoder (Opus 4.7)</td><td><span class="badge ok">done</span> success(initial)=False, success(lifted)=True</td></tr>
 <tr><td>M1.5</td><td>Solver + Verifier</td><td><span class="badge ok">done</span> hardcoded-oracle acceptance PASS; LLM-end-to-end exposes Critic motivation (see Risks)</td></tr>
-<tr><td>M1.6</td><td>LeRobot writer + raw NPZ shadow</td><td>next</td></tr>
-<tr><td>M1.7</td><td>Pipeline orchestrator + smoke test</td><td></td></tr>
+<tr><td>M1.6</td><td>LeRobot writer + raw NPZ shadow</td><td><span class="badge ok">done</span> 1 episode / 650 frames reload, NPZ shapes match</td></tr>
+<tr><td>M1.7</td><td>Pipeline orchestrator + smoke test</td><td><span class="badge ok">done</span> end-to-end PASS attempt 1/3, 110 s, ~&dollar;0.10, terminal cube z = 0.167</td></tr>
 </tbody></table>
 
 <h3>Coarse milestones</h3>
@@ -354,7 +354,7 @@ class SceneState:
 <thead><tr><th>M#</th><th>Outcome</th><th>Acceptance</th></tr></thead>
 <tbody>
 <tr><td>M0 <span class="badge ok">done</span></td><td>Phase A research, Phase B design, vertical-slice script runs on M2 Metal.</td><td><code>scripts/reproduce_grasp.py</code> exits 0; DESIGN.html written; skeleton committed.</td></tr>
-<tr><td>M1 <span class="badge warn">5/7 in progress</span></td><td>End-to-end vertical slice: one hard-coded seed runs Proposer&rarr;SceneCoder&rarr;RewardCoder&rarr;Solver&rarr;Verifier&rarr;Dataset, no diversity, no Critic loop yet.</td><td>1 validated task + 1 LeRobot episode on disk; engine wrapper compiles + runs; all 4 agents invoked.</td></tr>
+<tr><td>M1 <span class="badge ok">done</span></td><td>End-to-end vertical slice: one hard-coded seed runs Proposer&rarr;SceneCoder&rarr;RewardCoder&rarr;Solver&rarr;Verifier&rarr;Dataset, no diversity, no Critic loop yet.</td><td>1 validated task + 1 LeRobot episode on disk; engine wrapper compiles + runs; all 4 agents invoked.</td></tr>
 <tr><td>M2</td><td>Generalise within Franka tabletop domain. Variation in object size / pos / color / target. Critic loop active.</td><td>&ge; 50 validated tasks; <code>valid_rate</code> &ge; 0.5; reproducible from a single seed-list file; metric dashboard.</td></tr>
 <tr><td>M3</td><td>Scale to dataset. Move to cloud NVIDIA. Batched envs, Nyx rendering. Publish dataset.</td><td>~1 K validated trajectories; LeRobot dataset uploaded; diversity metrics reported; cost per task &lt; $1.</td></tr>
 <tr><td>M4 <span class="badge muted">optional</span></td><td>Downstream-training proof. Train Diffusion Policy or ACT on generated dataset.</td><td>Success-rate-vs-N curve; baseline beats random &amp; oracle-on-unseen-init.</td></tr>

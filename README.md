@@ -4,7 +4,7 @@
 
 Given a domain seed, worldwright proposes a manipulation task, generates the scene as code, synthesises a success/reward function as code, runs it in Genesis World, verifies it's solvable with a scripted oracle, self-corrects failures, and logs validated tasks + trajectories as a training-ready [LeRobot](https://huggingface.co/docs/lerobot) dataset.
 
-> **Status:** M0 complete. Phase A research, Phase B design (see [`DESIGN.html`](DESIGN.html)), and the human-baseline vertical slice all run green on Apple M2 Metal. M1 (end-to-end agentic loop) is next.
+> **Status:** **M1 complete.** End-to-end LLM-driven pipeline runs on Apple M2 Metal: seed → Proposer (Sonnet) → SceneCoder (Sonnet) → RewardCoder (Opus) → Solver (Genesis IK + RRT-Connect) → Verifier → LeRobot dataset. Wallclock ~110 s / cost ~$0.10 per validated task. M2 (Critic loop + diversity) is next — see [milestones](https://github.com/ka1kqi/worldwright/milestones).
 
 ---
 
@@ -23,6 +23,20 @@ Reproduce it yourself:
 ```
 
 Exits 0 on success (`cube_z > 0.15` and held centred under the gripper); non-zero otherwise.
+
+### LLM-driven end-to-end pipeline (M1 capstone)
+
+```bash
+.venv/bin/python scripts/run_pipeline.py --seed "lift the cube"
+```
+
+Wires Proposer → SceneCoder → RewardCoder → Solver → Verifier → LeRobot writer. On success, persists three artifacts under `data/<dataset-name>/`:
+
+- LeRobot dataset (parquet, schema-checked, reloads via `LeRobotDataset(...)`)
+- Raw NPZ shadow at `raw/<task_id>.npz` (no LeRobot dep on read)
+- Full `TaskManifest` JSON at `manifests/<task_id>.json` (TaskSpec + scene_code + success_code + oracle + token + wallclock metrics)
+
+Typical run: ~110 s wallclock, ~$0.10 in Anthropic tokens.
 
 ### Failure mode (M1.5 discovery)
 
@@ -108,7 +122,7 @@ worldwright/
 | | Outcome | Status |
 |---|---|---|
 | **M0** | Phase A research; Phase B design; vertical-slice baseline runs on M2 Metal | ✅ done |
-| **M1** | End-to-end agentic loop on one seed: all four agents wired, one validated LeRobot episode on disk | 🟡 5/7 sub-tickets done — see [milestones](https://github.com/ka1kqi/worldwright/milestones) |
+| **M1** | End-to-end agentic loop on one seed: all four agents wired, one validated LeRobot episode on disk | ✅ done — 7/7 sub-tickets |
 | **M2** | Generalise within Franka tabletop. ≥ 50 validated tasks, `valid_rate` ≥ 0.5, Critic loop active | |
 | **M3** | Scale on cloud NVIDIA. ~1 K validated trajectories, Nyx rendering, published LeRobot dataset | |
 | **M4** | Optional — train Diffusion Policy / ACT on the generated dataset; report success-rate-vs-N | |
