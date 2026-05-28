@@ -11,8 +11,9 @@ dependencies = [
     "genesis-world>=1.0.0",
     "torch>=2.9.1",
     "numpy",
-    "anthropic",
+    "anthropic>=0.42",
     "pydantic>=2",
+    "python-dotenv",
     "tyro",
     "rich",
 ]

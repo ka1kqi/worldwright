@@ -67,6 +67,7 @@ class WorldwrightScene:
         )
 
         self._entities: dict[str, EntityHandle] = {}
+        self._planes: set[str] = set()  # fixtures, excluded from state().objects
         self._franka: FrankaHandle | None = None
         self._cameras: dict[str, Any] = {}
         self._recording_cameras: list[str] = []
@@ -81,6 +82,7 @@ class WorldwrightScene:
         ent = self._scene.add_entity(gs.morphs.Plane())
         h = EntityHandle(name, ent)
         self._entities[name] = h
+        self._planes.add(name)
         return h
 
     def add_box(
@@ -176,7 +178,9 @@ class WorldwrightScene:
         objects = {
             name: ObjectState(pos=h.get_pos(), quat=h.get_quat())
             for name, h in self._entities.items()
-            if name != f.name and not isinstance(h, FrankaHandle)
+            if name != f.name
+            and not isinstance(h, FrankaHandle)
+            and name not in self._planes
         }
         return SceneState(
             t=self._t,
