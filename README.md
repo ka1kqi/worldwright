@@ -4,7 +4,7 @@
 
 Given a domain seed, worldwright proposes a manipulation task, generates the scene as code, synthesises a success/reward function as code, runs it in Genesis World, verifies it's solvable with a scripted oracle, self-corrects failures, and logs validated tasks + trajectories as a training-ready [LeRobot](https://huggingface.co/docs/lerobot) dataset.
 
-> **Status:** **M1 complete.** End-to-end LLM-driven pipeline runs on Apple M2 Metal: seed → Proposer (Sonnet) → SceneCoder (Sonnet) → RewardCoder (Opus) → Solver (Genesis IK + RRT-Connect) → Verifier → LeRobot dataset. Wallclock ~110 s / cost ~$0.10 per validated task. M2 (Critic loop + diversity) is next — see [milestones](https://github.com/ka1kqi/worldwright/milestones).
+> **Status:** **M2 complete.** Critic-aware pipeline batch on Apple M2 Metal produced **76 validated tasks from 86 seeds — 88.4% valid_rate, 84% first-try success**. Mean 38.5 s wallclock and ~$0.06 per validated task. Spatial entropy 2.47 bits across 11 workspace cells, 11 unique cube colours. See [`data/vs-m2/M2_SUMMARY.md`](data/vs-m2/M2_SUMMARY.md) + [`data/vs-m2/diversity.md`](data/vs-m2/diversity.md). M3 (cloud scale, Nyx rendering, dataset publish) is next.
 
 ---
 
@@ -123,7 +123,7 @@ worldwright/
 |---|---|---|
 | **M0** | Phase A research; Phase B design; vertical-slice baseline runs on M2 Metal | ✅ done |
 | **M1** | End-to-end agentic loop on one seed: all four agents wired, one validated LeRobot episode on disk | ✅ done — 7/7 sub-tickets |
-| **M2** | Generalise within Franka tabletop. ≥ 50 validated tasks, `valid_rate` ≥ 0.5, Critic loop active | |
+| **M2** | Generalise within Franka tabletop. ≥ 50 validated tasks, `valid_rate` ≥ 0.5, Critic loop active | ✅ done — **76 validated / 86 attempted (88%)**, 84% first-try |
 | **M3** | Scale on cloud NVIDIA. ~1 K validated trajectories, Nyx rendering, published LeRobot dataset | |
 | **M4** | Optional — train Diffusion Policy / ACT on the generated dataset; report success-rate-vs-N | |
 

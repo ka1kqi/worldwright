@@ -1,0 +1,87 @@
+task_id,seed,success,failure_stage,failure_message,attempt,critic_iterations,wallclock_s,oracle_steps,tokens_in_total,tokens_out_total,lerobot_root,manifest_path
+wright-lift-the-cube-6fa274ff19,lift the cube,true,,,1,0,33.7,800,8337,893,data/vs-m2,data/vs-m2/manifests/wright-lift-the-cube-6fa274ff19.json
+wright-lift-the-red-cube-bee7f4a811,lift the red cube,true,,,1,0,39.0,800,8324,857,data/vs-m2,data/vs-m2/manifests/wright-lift-the-red-cube-bee7f4a811.json
+wright-lift-the-blue-cube-2b553eeeed,lift the blue cube,true,,,1,0,33.2,800,8322,906,data/vs-m2,data/vs-m2/manifests/wright-lift-the-blue-cube-2b553eeeed.json
+wright-lift-the-green-cube-3400ad2d96,lift the green cube,true,,,2,1,51.3,850,12056,1502,data/vs-m2,data/vs-m2/manifests/wright-lift-the-green-cube-3400ad2d96.json
+wright-lift-the-yellow-cube-21df6ab2f7,lift the yellow cube,true,,,1,0,36.1,800,8338,868,data/vs-m2,data/vs-m2/manifests/wright-lift-the-yellow-cube-21df6ab2f7.json
+wright-lift-the-small-cube-89edc3ab9c,lift the small cube,true,,,1,0,34.3,800,8349,869,data/vs-m2,data/vs-m2/manifests/wright-lift-the-small-cube-89edc3ab9c.json
+wright-lift-the-small-red-cube-1092c2c567,lift the small red cube,false,verify,success_never_fired: success() returned False at terminal state,3,2,64.5,950,15773,2178,,
+wright-lift-the-small-blue-cube-79fa06427d,lift the small blue cube,true,,,1,0,35.9,800,8368,883,data/vs-m2,data/vs-m2/manifests/wright-lift-the-small-blue-cube-79fa06427d.json
+wright-lift-the-small-green-cube-9ab5898927,lift the small green cube,true,,,1,0,35.7,800,8334,868,data/vs-m2,data/vs-m2/manifests/wright-lift-the-small-green-cube-9ab5898927.json
+wright-lift-the-small-yellow-cube-b40878fb10,lift the small yellow cube,true,,,1,0,33.9,800,8337,890,data/vs-m2,data/vs-m2/manifests/wright-lift-the-small-yellow-cube-b40878fb10.json
+wright-lift-a-tall-cube-24d7edd2cd,lift a tall cube,true,,,1,0,34.4,800,8339,913,data/vs-m2,data/vs-m2/manifests/wright-lift-a-tall-cube-24d7edd2cd.json
+wright-lift-a-cube-near-the-left-side-f0bf0fa80c,lift a cube near the left side,true,,,1,0,35.5,800,8381,891,data/vs-m2,data/vs-m2/manifests/wright-lift-a-cube-near-the-left-side-f0bf0fa80c.json
+wright-lift-a-cube-near-the-right-side-bada534b5c,lift a cube near the right side,true,,,1,0,34.8,800,8423,919,data/vs-m2,data/vs-m2/manifests/wright-lift-a-cube-near-the-right-side-bada534b5c.json
+wright-lift-a-cube-near-the-back-94184df837,lift a cube near the back,true,,,2,1,47.6,950,12106,1621,data/vs-m2,data/vs-m2/manifests/wright-lift-a-cube-near-the-back-94184df837.json
+wright-lift-a-cube-on-the-right-16da7de8e7,lift a cube on the right,true,,,1,0,34.3,800,8332,882,data/vs-m2,data/vs-m2/manifests/wright-lift-a-cube-on-the-right-16da7de8e7.json
+wright-lift-a-cube-on-the-left-18aeda5b69,lift a cube on the left,true,,,1,0,33.3,800,8335,868,data/vs-m2,data/vs-m2/manifests/wright-lift-a-cube-on-the-left-18aeda5b69.json
+wright-lift-the-orange-cube-a883b21094,lift the orange cube,true,,,2,1,52.9,950,12047,1574,data/vs-m2,data/vs-m2/manifests/wright-lift-the-orange-cube-a883b21094.json
+wright-lift-the-purple-cube-4937b10aca,lift the purple cube,true,,,1,0,35.7,800,8355,874,data/vs-m2,data/vs-m2/manifests/wright-lift-the-purple-cube-4937b10aca.json
+wright-lift-the-cyan-cube-9e3659c3ab,lift the cyan cube,true,,,1,0,34.1,800,8331,874,data/vs-m2,data/vs-m2/manifests/wright-lift-the-cyan-cube-9e3659c3ab.json
+wright-lift-the-magenta-cube-73f60657b4,lift the magenta cube,true,,,1,0,35.9,800,8366,902,data/vs-m2,data/vs-m2/manifests/wright-lift-the-magenta-cube-73f60657b4.json
+wright-pick-up-the-cube-78d34abd8c,pick up the cube,true,,,1,0,39.9,800,8346,869,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-cube-78d34abd8c.json
+wright-pick-up-the-small-cube-fc5889a7a0,pick up the small cube,true,,,1,0,35.4,800,8326,870,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-small-cube-fc5889a7a0.json
+wright-pick-up-the-red-cube-0fb6288231,pick up the red cube,true,,,1,0,35.8,800,8338,872,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-red-cube-0fb6288231.json
+wright-pick-up-the-blue-cube-008fb24791,pick up the blue cube,true,,,1,0,34.3,800,8337,859,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-blue-cube-008fb24791.json
+wright-pick-up-the-green-cube-3d9cb2fd5e,pick up the green cube,true,,,1,0,34.9,800,8312,865,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-green-cube-3d9cb2fd5e.json
+wright-pick-the-cube-up-off-the-table-152c479144,pick the cube up off the table,true,,,1,0,37.8,800,8371,893,data/vs-m2,data/vs-m2/manifests/wright-pick-the-cube-up-off-the-table-152c479144.json
+wright-pick-the-cube-off-the-table-e042326bac,pick the cube off the table,true,,,1,0,35.0,800,8352,890,data/vs-m2,data/vs-m2/manifests/wright-pick-the-cube-off-the-table-e042326bac.json
+wright-pick-up-the-small-red-cube-b71ef59ab7,pick up the small red cube,true,,,2,1,52.3,1050,12109,1617,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-small-red-cube-b71ef59ab7.json
+wright-pick-up-the-small-blue-cube-a00ad68b5a,pick up the small blue cube,true,,,1,0,37.4,800,8321,864,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-small-blue-cube-a00ad68b5a.json
+wright-pick-up-the-small-green-cube-204859ea8c,pick up the small green cube,true,,,1,0,34.2,800,8336,875,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-small-green-cube-204859ea8c.json
+wright-grasp-the-cube-and-lift-bb171cfb2f,grasp the cube and lift,true,,,1,0,36.5,800,8347,890,data/vs-m2,data/vs-m2/manifests/wright-grasp-the-cube-and-lift-bb171cfb2f.json
+wright-grasp-the-red-cube-and-lift-7276de388f,grasp the red cube and lift,true,,,1,0,65.8,800,8371,917,data/vs-m2,data/vs-m2/manifests/wright-grasp-the-red-cube-and-lift-7276de388f.json
+wright-grasp-the-blue-cube-and-lift-0599c95053,grasp the blue cube and lift,true,,,1,0,35.3,800,8354,882,data/vs-m2,data/vs-m2/manifests/wright-grasp-the-blue-cube-and-lift-0599c95053.json
+wright-grasp-the-small-cube-and-lift-167d7a6732,grasp the small cube and lift,true,,,1,0,34.8,800,8383,914,data/vs-m2,data/vs-m2/manifests/wright-grasp-the-small-cube-and-lift-167d7a6732.json
+wright-grasp-the-small-green-cube-and-l-8c38d8d6f2,grasp the small green cube and lift,true,,,1,0,36.7,800,8373,907,data/vs-m2,data/vs-m2/manifests/wright-grasp-the-small-green-cube-and-l-8c38d8d6f2.json
+wright-hoist-the-cube-75a748daed,hoist the cube,false,verify,success_never_fired: success() returned False at terminal state,3,2,80.8,1050,15913,2446,,
+wright-hoist-the-red-cube-e79c0507c5,hoist the red cube,true,,,1,0,37.3,800,8358,875,data/vs-m2,data/vs-m2/manifests/wright-hoist-the-red-cube-e79c0507c5.json
+wright-hoist-the-blue-cube-2ee4280722,hoist the blue cube,true,,,1,0,34.8,800,8368,886,data/vs-m2,data/vs-m2/manifests/wright-hoist-the-blue-cube-2ee4280722.json
+wright-raise-the-cube-2c101f5b29,raise the cube,true,,,1,0,34.6,800,8350,888,data/vs-m2,data/vs-m2/manifests/wright-raise-the-cube-2c101f5b29.json
+wright-raise-the-red-cube-62695e7552,raise the red cube,true,,,1,0,35.0,800,8343,871,data/vs-m2,data/vs-m2/manifests/wright-raise-the-red-cube-62695e7552.json
+wright-raise-the-cube-to-15-centimetres-990e044c9d,raise the cube to 15 centimetres,true,,,1,0,36.1,800,8390,886,data/vs-m2,data/vs-m2/manifests/wright-raise-the-cube-to-15-centimetres-990e044c9d.json
+wright-raise-the-cube-to-20-centimetres-3532fcabb2,raise the cube to 20 centimetres,false,verify,success_never_fired: success() returned False at terminal state,3,2,75.5,950,15904,2268,,
+wright-lift-the-cube-straight-up-6c76a4a46e,lift the cube straight up,true,,,1,0,38.2,800,8371,894,data/vs-m2,data/vs-m2/manifests/wright-lift-the-cube-straight-up-6c76a4a46e.json
+wright-lift-the-cube-and-hold-it-b20282afdd,lift the cube and hold it,true,,,1,0,35.6,800,8386,918,data/vs-m2,data/vs-m2/manifests/wright-lift-the-cube-and-hold-it-b20282afdd.json
+wright-lift-the-green-cube-straight-up-fda4d5fd40,lift the green cube straight up,true,,,1,0,35.9,800,8377,961,data/vs-m2,data/vs-m2/manifests/wright-lift-the-green-cube-straight-up-fda4d5fd40.json
+wright-lift-the-yellow-cube-straight-up-24b9b2816c,lift the yellow cube straight up,true,,,1,0,36.0,800,8411,904,data/vs-m2,data/vs-m2/manifests/wright-lift-the-yellow-cube-straight-up-24b9b2816c.json
+wright-lift-the-small-cube-straight-up-a4a4dee07e,lift the small cube straight up,true,,,1,0,35.0,800,8371,875,data/vs-m2,data/vs-m2/manifests/wright-lift-the-small-cube-straight-up-a4a4dee07e.json
+wright-lift-the-small-red-cube-to-15-cm-363d8dfa92,lift the small red cube to 15 cm,true,,,1,0,35.1,800,8395,896,data/vs-m2,data/vs-m2/manifests/wright-lift-the-small-red-cube-to-15-cm-363d8dfa92.json
+wright-lift-the-small-blue-cube-to-15-c-dffa0e4db4,lift the small blue cube to 15 cm,true,,,1,0,36.6,800,8413,960,data/vs-m2,data/vs-m2/manifests/wright-lift-the-small-blue-cube-to-15-c-dffa0e4db4.json
+wright-lift-the-small-green-cube-to-15-a4d5cda933,lift the small green cube to 15 cm,true,,,1,0,35.2,800,8369,911,data/vs-m2,data/vs-m2/manifests/wright-lift-the-small-green-cube-to-15-a4d5cda933.json
+wright-lift-the-small-orange-cube-0e3e9b073b,lift the small orange cube,true,,,1,0,37.0,800,8349,899,data/vs-m2,data/vs-m2/manifests/wright-lift-the-small-orange-cube-0e3e9b073b.json
+wright-lift-the-small-purple-cube-fdcadece58,lift the small purple cube,true,,,1,0,35.3,800,8352,902,data/vs-m2,data/vs-m2/manifests/wright-lift-the-small-purple-cube-fdcadece58.json
+wright-lift-the-small-cyan-cube-8613b69714,lift the small cyan cube,true,,,2,1,52.5,1050,12077,1616,data/vs-m2,data/vs-m2/manifests/wright-lift-the-small-cyan-cube-8613b69714.json
+wright-lift-a-cube-far-back-50e4345228,lift a cube far back,false,verify,success_never_fired: success() returned False at terminal state,3,2,73.5,850,15711,2163,,
+wright-lift-a-cube-in-the-front-fd3eebb4e2,lift a cube in the front,false,verify,success_never_fired: success() returned False at terminal state,3,2,75.1,900,15729,2152,,
+wright-pick-up-the-orange-cube-c20d48aefd,pick up the orange cube,true,,,1,0,35.2,800,8355,889,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-orange-cube-c20d48aefd.json
+wright-pick-up-the-cyan-cube-b2be71c33e,pick up the cyan cube,true,,,1,0,34.1,800,8337,885,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-cyan-cube-b2be71c33e.json
+wright-pick-up-the-purple-cube-2e4b3423c2,pick up the purple cube,true,,,1,0,35.4,800,8314,866,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-purple-cube-2e4b3423c2.json
+wright-pick-up-the-small-magenta-cube-9f55fd17b7,pick up the small magenta cube,true,,,2,1,55.2,900,12081,1597,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-small-magenta-cube-9f55fd17b7.json
+wright-grasp-the-orange-cube-and-lift-e0a707cfc1,grasp the orange cube and lift,true,,,1,0,35.8,800,8439,908,data/vs-m2,data/vs-m2/manifests/wright-grasp-the-orange-cube-and-lift-e0a707cfc1.json
+wright-grasp-the-cyan-cube-and-lift-f4b0c240fe,grasp the cyan cube and lift,true,,,1,0,34.3,800,8379,924,data/vs-m2,data/vs-m2/manifests/wright-grasp-the-cyan-cube-and-lift-f4b0c240fe.json
+wright-grasp-the-purple-cube-and-lift-3992c5b6e8,grasp the purple cube and lift,true,,,1,0,36.1,800,8348,911,data/vs-m2,data/vs-m2/manifests/wright-grasp-the-purple-cube-and-lift-3992c5b6e8.json
+wright-lift-a-small-cube-on-the-left-5d2a17dabf,lift a small cube on the left,false,verify,success_never_fired: success() returned False at terminal state,3,2,68.9,950,15834,2210,,
+wright-lift-a-small-cube-on-the-right-d517a2ada6,lift a small cube on the right,false,verify,success_never_fired: success() returned False at terminal state,3,2,104.8,950,15899,2193,,
+wright-lift-the-cube-quickly-f8a6f7c39f,lift the cube quickly,true,,,2,1,52.3,950,12072,1548,data/vs-m2,data/vs-m2/manifests/wright-lift-the-cube-quickly-f8a6f7c39f.json
+wright-lift-the-heavy-looking-cube-e2ac1b2c7f,lift the heavy looking cube,true,,,2,1,51.3,950,12120,1587,data/vs-m2,data/vs-m2/manifests/wright-lift-the-heavy-looking-cube-e2ac1b2c7f.json
+wright-raise-the-small-cube-d627966154,raise the small cube,true,,,1,0,35.5,800,8397,910,data/vs-m2,data/vs-m2/manifests/wright-raise-the-small-cube-d627966154.json
+wright-raise-the-green-cube-to-15-cm-90258c57ab,raise the green cube to 15 cm,true,,,1,0,34.8,800,8366,926,data/vs-m2,data/vs-m2/manifests/wright-raise-the-green-cube-to-15-cm-90258c57ab.json
+wright-raise-the-blue-cube-to-15-cm-a56e1231f2,raise the blue cube to 15 cm,false,verify,success_never_fired: success() returned False at terminal state,3,2,74.3,900,15889,2212,,
+wright-pick-up-a-small-cube-3acbde7701,pick up a small cube,true,,,2,1,53.6,950,12077,1502,data/vs-m2,data/vs-m2/manifests/wright-pick-up-a-small-cube-3acbde7701.json
+wright-lift-any-cube-c2ae5d49db,lift any cube,true,,,1,0,34.1,800,8346,910,data/vs-m2,data/vs-m2/manifests/wright-lift-any-cube-c2ae5d49db.json
+wright-grasp-and-raise-the-red-cube-18faca8365,grasp and raise the red cube,true,,,1,0,35.1,800,8340,907,data/vs-m2,data/vs-m2/manifests/wright-grasp-and-raise-the-red-cube-18faca8365.json
+wright-lift-the-white-cube-dd74db6206,lift the white cube,true,,,1,0,35.5,800,8322,902,data/vs-m2,data/vs-m2/manifests/wright-lift-the-white-cube-dd74db6206.json
+wright-lift-the-black-cube-2ba7653d4f,lift the black cube,true,,,1,0,34.3,800,8336,882,data/vs-m2,data/vs-m2/manifests/wright-lift-the-black-cube-2ba7653d4f.json
+wright-lift-the-brown-cube-0b3b33387e,lift the brown cube,true,,,1,0,33.2,800,8348,886,data/vs-m2,data/vs-m2/manifests/wright-lift-the-brown-cube-0b3b33387e.json
+wright-pick-up-the-small-white-cube-b862e995e0,pick up the small white cube,true,,,1,0,35.0,800,8340,885,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-small-white-cube-b862e995e0.json
+wright-pick-up-the-small-black-cube-27c69bc1a1,pick up the small black cube,true,,,2,1,53.8,900,12090,1533,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-small-black-cube-27c69bc1a1.json
+wright-pick-up-the-small-brown-cube-e2131a5f5b,pick up the small brown cube,true,,,1,0,35.8,800,8342,921,data/vs-m2,data/vs-m2/manifests/wright-pick-up-the-small-brown-cube-e2131a5f5b.json
+wright-grasp-the-small-white-cube-1fe9d3a9d8,grasp the small white cube,false,verify,success_never_fired: success() returned False at terminal state,3,2,72.7,950,15866,2246,,
+wright-grasp-the-small-black-cube-f3a3120b49,grasp the small black cube,false,verify,success_never_fired: success() returned False at terminal state,3,2,71.5,950,15839,2150,,
+wright-lift-the-pink-cube-da570165c0,lift the pink cube,true,,,1,0,35.5,800,8363,888,data/vs-m2,data/vs-m2/manifests/wright-lift-the-pink-cube-da570165c0.json
+wright-pick-the-pink-cube-up-f53a1139fa,pick the pink cube up,true,,,1,0,35.8,800,8340,867,data/vs-m2,data/vs-m2/manifests/wright-pick-the-pink-cube-up-f53a1139fa.json
+wright-lift-the-small-pink-cube-8ca56b239f,lift the small pink cube,true,,,2,1,51.4,900,12152,1598,data/vs-m2,data/vs-m2/manifests/wright-lift-the-small-pink-cube-8ca56b239f.json
+wright-hoist-the-small-red-cube-ee919a187d,hoist the small red cube,true,,,2,1,53.7,950,12103,1594,data/vs-m2,data/vs-m2/manifests/wright-hoist-the-small-red-cube-ee919a187d.json
+wright-hoist-the-small-green-cube-b55a6fb703,hoist the small green cube,true,,,1,0,35.1,800,8371,897,data/vs-m2,data/vs-m2/manifests/wright-hoist-the-small-green-cube-b55a6fb703.json
+wright-hoist-the-small-blue-cube-ac76232c80,hoist the small blue cube,true,,,1,0,35.3,800,8381,886,data/vs-m2,data/vs-m2/manifests/wright-hoist-the-small-blue-cube-ac76232c80.json

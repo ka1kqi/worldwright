@@ -57,7 +57,7 @@
 
 <h1>Worldwright</h1>
 <p class="lede">An LLM/VLM agent that autonomously authors simulation tasks in Genesis World 1.0 &mdash; a modern reimplementation of RoboGen built on the new <code>genesis</code> physics stack.</p>
-<p class="meta">Design v0.0.4 &middot; M1 complete (7/7) &middot; M2 in progress (6/7 sub-tickets shipped, acceptance batch running) &middot; Targets Apple M2 (Metal) first, cloud NVIDIA later.</p>
+<p class="meta">Design v0.0.5 &middot; M1 complete (7/7) &middot; <b>M2 complete (7/7)</b> &middot; Targets Apple M2 (Metal) first, cloud NVIDIA later.</p>
 <p class="meta">Live tracker: <a href="https://github.com/ka1kqi/worldwright/milestones" target="_blank" rel="noopener">github.com/ka1kqi/worldwright/milestones</a></p>
 
 <nav class="nav">
@@ -359,7 +359,7 @@ class SceneState:
 <tr><td>M2.4</td><td>Batch pipeline runner with resume / SIGINT handling</td><td><span class="badge ok">done</span> 86-seed file, deterministic task_ids, batch_log.csv</td></tr>
 <tr><td>M2.5</td><td>Validity-metrics aggregator + Rich dashboard</td><td><span class="badge ok">done</span> valid_rate, first_try, critic stats, tokens, failure breakdown</td></tr>
 <tr><td>M2.6</td><td>Diversity report (object counts, type entropy, size buckets, spatial-layout entropy on 8&times;8 grid, skill tags)</td><td><span class="badge ok">done</span> markdown emitter, all metrics from <em>DESIGN.html &sect;7.2</em> minus deferred reward-clustering</td></tr>
-<tr><td>M2.7</td><td>Acceptance batch (&ge; 50 validated tasks, valid_rate &ge; 0.5)</td><td><span class="badge warn">batch running</span> 86-seed M2.7 in progress; results land in next commit</td></tr>
+<tr><td>M2.7</td><td>Acceptance batch (&ge; 50 validated tasks, valid_rate &ge; 0.5)</td><td><span class="badge ok">done</span> 86 attempted, <b>76 validated (88.4% valid_rate)</b>, 84% first-try, mean 0.16 critic iters / validated, 38.5s avg wallclock, ~$0.06 avg cost</td></tr>
 </tbody></table>
 
 <h4>Engineering finds during M2</h4>
@@ -375,7 +375,7 @@ class SceneState:
 <tbody>
 <tr><td>M0 <span class="badge ok">done</span></td><td>Phase A research, Phase B design, vertical-slice script runs on M2 Metal.</td><td><code>scripts/reproduce_grasp.py</code> exits 0; DESIGN.html written; skeleton committed.</td></tr>
 <tr><td>M1 <span class="badge ok">done</span></td><td>End-to-end vertical slice: one hard-coded seed runs Proposer&rarr;SceneCoder&rarr;RewardCoder&rarr;Solver&rarr;Verifier&rarr;Dataset, no diversity, no Critic loop yet.</td><td>1 validated task + 1 LeRobot episode on disk; engine wrapper compiles + runs; all 4 agents invoked.</td></tr>
-<tr><td>M2</td><td>Generalise within Franka tabletop domain. Variation in object size / pos / color / target. Critic loop active.</td><td>&ge; 50 validated tasks; <code>valid_rate</code> &ge; 0.5; reproducible from a single seed-list file; metric dashboard.</td></tr>
+<tr><td>M2 <span class="badge ok">done</span></td><td>Generalise within Franka tabletop domain. Variation in object size / pos / color / target. Critic loop active.</td><td><b>76 validated</b> / 86 attempted, <b>valid_rate 88%</b>, 84% first-try, spatial entropy 2.47 bits, 11 unique colours.</td></tr>
 <tr><td>M3</td><td>Scale to dataset. Move to cloud NVIDIA. Batched envs, Nyx rendering. Publish dataset.</td><td>~1 K validated trajectories; LeRobot dataset uploaded; diversity metrics reported; cost per task &lt; $1.</td></tr>
 <tr><td>M4 <span class="badge muted">optional</span></td><td>Downstream-training proof. Train Diffusion Policy or ACT on generated dataset.</td><td>Success-rate-vs-N curve; baseline beats random &amp; oracle-on-unseen-init.</td></tr>
 </tbody></table>
