@@ -28,6 +28,8 @@ Exits 0 on success (`cube_z > 0.15` and held centred under the gripper); non-zer
 
 When the Proposer chooses a 5 cm cube but the RewardCoder copy-pastes reach-z values from a 4 cm-cube worked example, the gripper descends too low relative to the cube centre and nudges it aside during grasp. The Verifier catches this cleanly with `passed=False reason=success_never_fired` and a full diagnostic terminal state — exactly the surface the Critic (M2) consumes. Deterministic reproduction:
 
+https://github.com/user-attachments/assets/f2e0b1d7-1d41-4eeb-b8a2-cb3598393191
+
 ▶ [Watch `grasp_failure.mp4`](assets/grasp_failure.mp4) &middot; `.venv/bin/python scripts/record_failure_demo.py --record-mp4 assets/grasp_failure.mp4`
 
 ---
