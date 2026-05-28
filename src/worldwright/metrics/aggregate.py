@@ -45,9 +45,15 @@ def _percentile(sorted_values: list[float], pct: float) -> float:
 
 def aggregate_validity(dataset_root: Path | str) -> ValidityMetrics:
     dataset_root = Path(dataset_root)
-    log_path = dataset_root / "batch_log.csv"
+    # batch_log lives in the __batch sibling (see batch.py)
+    log_path = dataset_root.parent / f"{dataset_root.name}__batch" / "batch_log.csv"
     if not log_path.exists():
-        raise FileNotFoundError(f"no batch_log.csv at {log_path}")
+        # fall back to legacy in-dataset location
+        legacy = dataset_root / "batch_log.csv"
+        if legacy.exists():
+            log_path = legacy
+        else:
+            raise FileNotFoundError(f"no batch_log.csv at {log_path} or {legacy}")
 
     rows: list[dict] = []
     with log_path.open(newline="") as f:

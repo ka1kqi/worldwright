@@ -233,7 +233,7 @@ def run_with_retries(
 # M2: Critic-aware loop
 # ---------------------------------------------------------------------------
 
-_CRITIC_APPLICABLE_STAGES = frozenset({"scene_build", "sandbox", "verify", "dataset_write"})
+_CRITIC_APPLICABLE_STAGES = frozenset({"scene_build", "sandbox", "verify"})
 
 
 def _run_from_compile_onward(

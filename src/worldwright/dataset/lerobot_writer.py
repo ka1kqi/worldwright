@@ -41,15 +41,28 @@ _POSE7_NAMES = ["x", "y", "z", "qw", "qx", "qy", "qz"]
 
 
 def _features_for_task(task: TaskSpec) -> dict[str, dict]:
-    # LeRobot's validator compares numpy.shape (tuple) to feature["shape"]
-    # with !=, so shapes MUST be tuples or validation fails.
-    feats: dict[str, dict] = {
+    """Fixed batch-friendly schema.
+
+    LeRobot enforces a single feature dict per dataset, so per-task object
+    names cannot live in feature keys. We expose ONE slot for the primary
+    target's pose; the task's natural-language ``task`` field (in each frame)
+    plus the on-disk task_manifest carries which specific object that was.
+
+    LeRobot's validator compares numpy.shape (tuple) to feature["shape"] with
+    !=, so shapes MUST be tuples or validation fails.
+    """
+    return {
         "observation.state": {
             "dtype": "float32",
             "shape": (9,),
             "names": list(_FRANKA_DOF_NAMES),
         },
         "observation.ee_pose": {
+            "dtype": "float32",
+            "shape": (7,),
+            "names": list(_POSE7_NAMES),
+        },
+        "observation.target_pose": {
             "dtype": "float32",
             "shape": (7,),
             "names": list(_POSE7_NAMES),
@@ -62,13 +75,6 @@ def _features_for_task(task: TaskSpec) -> dict[str, dict]:
         "reward": {"dtype": "float32", "shape": (1,), "names": None},
         "next.done": {"dtype": "bool", "shape": (1,), "names": None},
     }
-    for obj in task.objects:
-        feats[f"observation.objects.{obj.name}"] = {
-            "dtype": "float32",
-            "shape": (7,),
-            "names": list(_POSE7_NAMES),
-        }
-    return feats
 
 
 # ---------------------------------------------------------------------------
@@ -78,29 +84,28 @@ def _features_for_task(task: TaskSpec) -> dict[str, dict]:
 def _frame_from_step(
     step: TrajectoryStep,
     task: TaskSpec,
+    target_object_name: str,
     is_done: bool,
 ) -> dict:
     state = step.state
-    frame: dict = {
+    target_state = state.objects.get(target_object_name)
+    target_pose = (
+        np.concatenate([target_state.pos, target_state.quat]).astype(np.float32)
+        if target_state is not None
+        else np.zeros(7, dtype=np.float32)
+    )
+    return {
         "observation.state": state.franka_q.astype(np.float32),
         "observation.ee_pose": np.concatenate(
             [state.ee_pos, state.ee_quat]
         ).astype(np.float32),
+        "observation.target_pose": target_pose,
         "action": step.action.astype(np.float32),
         "reward": np.array([1.0 if is_done else 0.0], dtype=np.float32),
         "next.done": np.array([is_done], dtype=bool),
         # LeRobot 0.5+ requires the natural-language task on every frame.
         "task": task.intent,
     }
-    for obj in task.objects:
-        os = state.objects.get(obj.name)
-        if os is None:
-            frame[f"observation.objects.{obj.name}"] = np.zeros(7, dtype=np.float32)
-        else:
-            frame[f"observation.objects.{obj.name}"] = np.concatenate(
-                [os.pos, os.quat]
-            ).astype(np.float32)
-    return frame
 
 
 def write_lerobot_episode(
@@ -109,6 +114,7 @@ def write_lerobot_episode(
     task: TaskSpec,
     trajectory: list[TrajectoryStep],
     success_first_fired_at_step: int | None,
+    target_object_name: str,
 ) -> None:
     """Append one episode to a LeRobot dataset (creating the dataset on first call)."""
     from lerobot.datasets.lerobot_dataset import LeRobotDataset
@@ -118,7 +124,7 @@ def write_lerobot_episode(
 
     info_path = root / "meta" / "info.json"
     if info_path.exists():
-        ds = LeRobotDataset(repo_id=repo_id, root=root)
+        ds = LeRobotDataset.resume(repo_id=repo_id, root=root)
     else:
         ds = LeRobotDataset.create(
             repo_id=repo_id,
@@ -134,7 +140,7 @@ def write_lerobot_episode(
             success_first_fired_at_step is not None
             and i >= success_first_fired_at_step
         )
-        frame = _frame_from_step(step, task, is_done)
+        frame = _frame_from_step(step, task, target_object_name, is_done)
         ds.add_frame(frame)
 
     ds.save_episode()
@@ -209,12 +215,21 @@ def write_validated_task(
     """
     dataset_root = Path(dataset_root)
 
+    # Primary target object name — from the oracle. Falls back to first object
+    # in TaskSpec if oracle didn't name one (shouldn't happen post-M1.4).
+    target_object_name = (
+        success.oracle.target_object
+        if success.oracle.target_object
+        else (task.objects[0].name if task.objects else "unknown")
+    )
+
     write_lerobot_episode(
         root=dataset_root,
         repo_id=repo_id,
         task=task,
         trajectory=trajectory,
         success_first_fired_at_step=success_first_fired_at_step,
+        target_object_name=target_object_name,
     )
 
     npz_path = dataset_root / "raw" / f"{task_id}.npz"

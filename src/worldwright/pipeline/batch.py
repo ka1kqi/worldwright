@@ -111,8 +111,11 @@ def run_batch(
     """
     repo_id = repo_id or f"ka1kqi/worldwright-{dataset_name}"
     dataset_root = Path("data") / dataset_name
-    dataset_root.mkdir(parents=True, exist_ok=True)
-    log_path = dataset_root / "batch_log.csv"
+    # batch_log lives in a SIBLING dir so LeRobotDataset.create can claim
+    # dataset_root cleanly (it refuses to create over an existing directory).
+    log_dir = Path("data") / f"{dataset_name}__batch"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / "batch_log.csv"
     done = _completed_task_ids(log_path) if resume else set()
 
     write_header = not log_path.exists()

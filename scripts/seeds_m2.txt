@@ -50,3 +50,40 @@ lift the small cube straight up
 lift the small red cube to 15 cm
 lift the small blue cube to 15 cm
 lift the small green cube to 15 cm
+# additional seeds for M2 acceptance
+lift the small orange cube
+lift the small purple cube
+lift the small cyan cube
+lift a cube far back
+lift a cube in the front
+pick up the orange cube
+pick up the cyan cube
+pick up the purple cube
+pick up the small magenta cube
+grasp the orange cube and lift
+grasp the cyan cube and lift
+grasp the purple cube and lift
+lift a small cube on the left
+lift a small cube on the right
+lift the cube quickly
+lift the heavy looking cube
+raise the small cube
+raise the green cube to 15 cm
+raise the blue cube to 15 cm
+pick up a small cube
+lift any cube
+grasp and raise the red cube
+lift the white cube
+lift the black cube
+lift the brown cube
+pick up the small white cube
+pick up the small black cube
+pick up the small brown cube
+grasp the small white cube
+grasp the small black cube
+lift the pink cube
+pick the pink cube up
+lift the small pink cube
+hoist the small red cube
+hoist the small green cube
+hoist the small blue cube
