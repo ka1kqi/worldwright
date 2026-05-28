@@ -12,7 +12,7 @@ Given a domain seed, worldwright proposes a manipulation task, generates the sce
 
 The video below is the human-baseline pick-and-lift that worldwright must eventually re-derive from natural-language seeds alone. Franka Panda + 4 cm cube, IK + RRT-Connect motion planning, force-controlled grasp. ~11 s, rendered at 960×720 on Apple M2 Metal.
 
-<video src="https://github.com/ka1kqi/worldwright/raw/main/assets/grasp_baseline.mp4" controls width="720"></video>
+[<video src="https://github.com/ka1kqi/worldwright/raw/main/assets/grasp_baseline.mp4" controls width="720"></video>](https://github.com/user-attachments/assets/4ef316c0-fa7e-4a45-aa9a-8302fc36bf9b)
 
 ▶ [Watch / download `grasp_baseline.mp4`](assets/grasp_baseline.mp4)
 
