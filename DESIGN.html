@@ -57,7 +57,8 @@
 
 <h1>Worldwright</h1>
 <p class="lede">An LLM/VLM agent that autonomously authors simulation tasks in Genesis World 1.0 &mdash; a modern reimplementation of RoboGen built on the new <code>genesis</code> physics stack.</p>
-<p class="meta">Design v0.0.1 &middot; Phase A complete &middot; Targets Apple M2 (Metal) first, cloud NVIDIA later.</p>
+<p class="meta">Design v0.0.2 &middot; M1 in progress (5/7 tickets) &middot; Targets Apple M2 (Metal) first, cloud NVIDIA later.</p>
+<p class="meta">Live tracker: <a href="https://github.com/ka1kqi/worldwright/milestones" target="_blank" rel="noopener">github.com/ka1kqi/worldwright/milestones</a></p>
 
 <nav class="nav">
   <a href="#goal">Goal</a>
@@ -334,11 +335,26 @@ class SceneState:
 </code></pre>
 
 <h2 id="milestones">9. Milestones</h2>
+
+<h3>M1 sub-tickets — live progress</h3>
+<table>
+<thead><tr><th>#</th><th>Outcome</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>M1.1</td><td>Engine wrapper (Scene / Franka / Entity / State)</td><td><span class="badge ok">done</span> bit-identical baseline reproduction via wrapper</td></tr>
+<tr><td>M1.2</td><td>Task spec (Pydantic) + sandbox (AST audit + restricted exec)</td><td><span class="badge ok">done</span> 18/18 tests pass</td></tr>
+<tr><td>M1.3</td><td>Proposer + SceneCoder (Sonnet 4.6)</td><td><span class="badge ok">done</span> end-to-end PASS in ~10 s</td></tr>
+<tr><td>M1.4</td><td>RewardCoder (Opus 4.7)</td><td><span class="badge ok">done</span> success(initial)=False, success(lifted)=True</td></tr>
+<tr><td>M1.5</td><td>Solver + Verifier</td><td><span class="badge ok">done</span> hardcoded-oracle acceptance PASS; LLM-end-to-end exposes Critic motivation (see Risks)</td></tr>
+<tr><td>M1.6</td><td>LeRobot writer + raw NPZ shadow</td><td>next</td></tr>
+<tr><td>M1.7</td><td>Pipeline orchestrator + smoke test</td><td></td></tr>
+</tbody></table>
+
+<h3>Coarse milestones</h3>
 <table>
 <thead><tr><th>M#</th><th>Outcome</th><th>Acceptance</th></tr></thead>
 <tbody>
 <tr><td>M0 <span class="badge ok">done</span></td><td>Phase A research, Phase B design, vertical-slice script runs on M2 Metal.</td><td><code>scripts/reproduce_grasp.py</code> exits 0; DESIGN.html written; skeleton committed.</td></tr>
-<tr><td>M1</td><td>End-to-end vertical slice: one hard-coded seed runs Proposer&rarr;SceneCoder&rarr;RewardCoder&rarr;Solver&rarr;Verifier&rarr;Dataset, no diversity, no Critic loop yet.</td><td>1 validated task + 1 LeRobot episode on disk; engine wrapper compiles + runs; all 4 agents invoked.</td></tr>
+<tr><td>M1 <span class="badge warn">5/7 in progress</span></td><td>End-to-end vertical slice: one hard-coded seed runs Proposer&rarr;SceneCoder&rarr;RewardCoder&rarr;Solver&rarr;Verifier&rarr;Dataset, no diversity, no Critic loop yet.</td><td>1 validated task + 1 LeRobot episode on disk; engine wrapper compiles + runs; all 4 agents invoked.</td></tr>
 <tr><td>M2</td><td>Generalise within Franka tabletop domain. Variation in object size / pos / color / target. Critic loop active.</td><td>&ge; 50 validated tasks; <code>valid_rate</code> &ge; 0.5; reproducible from a single seed-list file; metric dashboard.</td></tr>
 <tr><td>M3</td><td>Scale to dataset. Move to cloud NVIDIA. Batched envs, Nyx rendering. Publish dataset.</td><td>~1 K validated trajectories; LeRobot dataset uploaded; diversity metrics reported; cost per task &lt; $1.</td></tr>
 <tr><td>M4 <span class="badge muted">optional</span></td><td>Downstream-training proof. Train Diffusion Policy or ACT on generated dataset.</td><td>Success-rate-vs-N curve; baseline beats random &amp; oracle-on-unseen-init.</td></tr>
@@ -369,6 +385,13 @@ class SceneState:
     <em>De-risk M1:</em> measure pass-at-1 compile rate &amp; pass-at-1 correctness against the hand-labeled set; if &lt; 70 %, ablate Sonnet vs Opus and consider a chain-of-thought scratchpad.
   </li>
   <li>
+    <strong>RewardCoder oracle doesn&rsquo;t generalise across object dimensions.</strong>
+    <span class="badge warn">med</span> &middot; <span class="badge muted">surfaced during M1.5</span><br/>
+    First observed when the Proposer chose a 5 cm cube and the RewardCoder copy-pasted reach-z values from a 4 cm-cube worked example. The gripper descended too low relative to the cube centre and nudged the cube aside during grasp, leading to a clean Verifier failure (<code>passed=False reason=success_never_fired</code>). Tightening the RewardCoder prompt to compute z values parametrically from <code>object.pos[2]</code> reduced but did not eliminate the failure mode &mdash; physics tolerances around grasp width and finger placement vary enough that single-shot LLM oracles will not be reliable.
+    <em>De-risk M2 (Critic loop):</em> the structured <code>VerifierReport.reason</code> + <code>terminal_state</code> are exactly the diagnostic surface the Critic was designed to consume. The Critic should retry with the offending phase&rsquo;s positions perturbed (smaller reach depth, stronger grasp force) or escalate to a re-emission of the OracleHint with the observed terminal state included in the prompt.
+    See <a href="assets/grasp_failure.mp4">assets/grasp_failure.mp4</a> for a deterministic reproduction of this failure on Apple M2 Metal.
+  </li>
+  <li>
     <strong>M2 throughput ceiling for dataset-scale.</strong>
     <span class="badge muted">low</span><br/>
     84 step/s &times; ~700 steps / task &times; 50 tasks &asymp; 7 minutes of sim per 50-task batch. Fine for M1 / M2; M3 needs cloud NVIDIA, already planned.
@@ -392,10 +415,11 @@ class SceneState:
 
 <h2 id="open">11. Open questions for the next checkin</h2>
 <ul>
-  <li>Cost ceiling per validated task &mdash; what dollar figure should the pipeline refuse to exceed?</li>
+  <li>Cost ceiling per validated task &mdash; what dollar figure should the pipeline refuse to exceed? Empirically the Opus-heavy RewardCoder dominates cost at ~&dollar;0.09 / call; a 4-Critic-iteration ceiling would land near &dollar;0.50 / validated-task worst-case.</li>
   <li>Do we want a deterministic seed-list mode (reproducible portfolio runs) <em>and</em> a free-running stochastic mode, or only one?</li>
   <li>For M4 (downstream training): Diffusion Policy on state-only, or wait for M3 images and use ACT / pi0?</li>
   <li>Public-dataset publication: HuggingFace Hub under your name, or keep local until Genesis AI conversation?</li>
+  <li><span class="badge muted">new in M1.5</span> Critic patch granularity: should the Critic edit individual <code>OraclePhase</code> fields (e.g. just bump <code>pos[2]</code>) or re-emit the whole oracle? Per-field patching is safer but needs richer prompt scaffolding.</li>
 </ul>
 
 <p class="footnote">Cited Genesis source paths used to ground this design live in the Phase A report. The wrapper&rsquo;s API surface is intentionally a strict subset of what we observed in <code>genesis/engine/scene.py</code>, <code>genesis/engine/entities/rigid_entity/rigid_entity.py</code>, and <code>genesis/options/morphs.py</code>.</p>

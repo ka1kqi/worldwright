@@ -24,6 +24,12 @@ Reproduce it yourself:
 
 Exits 0 on success (`cube_z > 0.15` and held centred under the gripper); non-zero otherwise.
 
+### Failure mode (M1.5 discovery)
+
+When the Proposer chooses a 5 cm cube but the RewardCoder copy-pastes reach-z values from a 4 cm-cube worked example, the gripper descends too low relative to the cube centre and nudges it aside during grasp. The Verifier catches this cleanly with `passed=False reason=success_never_fired` and a full diagnostic terminal state — exactly the surface the Critic (M2) consumes. Deterministic reproduction:
+
+▶ [Watch `grasp_failure.mp4`](assets/grasp_failure.mp4) &middot; `.venv/bin/python scripts/record_failure_demo.py --record-mp4 assets/grasp_failure.mp4`
+
 ---
 
 ## Why this project
@@ -100,7 +106,7 @@ worldwright/
 | | Outcome | Status |
 |---|---|---|
 | **M0** | Phase A research; Phase B design; vertical-slice baseline runs on M2 Metal | ✅ done |
-| **M1** | End-to-end agentic loop on one seed: all four agents wired, one validated LeRobot episode on disk | next |
+| **M1** | End-to-end agentic loop on one seed: all four agents wired, one validated LeRobot episode on disk | 🟡 5/7 sub-tickets done — see [milestones](https://github.com/ka1kqi/worldwright/milestones) |
 | **M2** | Generalise within Franka tabletop. ≥ 50 validated tasks, `valid_rate` ≥ 0.5, Critic loop active | |
 | **M3** | Scale on cloud NVIDIA. ~1 K validated trajectories, Nyx rendering, published LeRobot dataset | |
 | **M4** | Optional — train Diffusion Policy / ACT on the generated dataset; report success-rate-vs-N | |
