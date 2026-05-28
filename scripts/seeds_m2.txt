@@ -1,0 +1,52 @@
+# M2 acceptance seed list — 50 varied tabletop manipulation seeds.
+# Lines starting with # are ignored. One seed per line.
+lift the cube
+lift the red cube
+lift the blue cube
+lift the green cube
+lift the yellow cube
+lift the small cube
+lift the small red cube
+lift the small blue cube
+lift the small green cube
+lift the small yellow cube
+lift a tall cube
+lift a cube near the left side
+lift a cube near the right side
+lift a cube near the back
+lift a cube on the right
+lift a cube on the left
+lift the orange cube
+lift the purple cube
+lift the cyan cube
+lift the magenta cube
+pick up the cube
+pick up the small cube
+pick up the red cube
+pick up the blue cube
+pick up the green cube
+pick the cube up off the table
+pick the cube off the table
+pick up the small red cube
+pick up the small blue cube
+pick up the small green cube
+grasp the cube and lift
+grasp the red cube and lift
+grasp the blue cube and lift
+grasp the small cube and lift
+grasp the small green cube and lift
+hoist the cube
+hoist the red cube
+hoist the blue cube
+raise the cube
+raise the red cube
+raise the cube to 15 centimetres
+raise the cube to 20 centimetres
+lift the cube straight up
+lift the cube and hold it
+lift the green cube straight up
+lift the yellow cube straight up
+lift the small cube straight up
+lift the small red cube to 15 cm
+lift the small blue cube to 15 cm
+lift the small green cube to 15 cm
