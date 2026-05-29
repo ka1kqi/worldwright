@@ -1,0 +1,16 @@
+# Sprint 2 iter-2 retry seeds — place + stack ONLY.
+# Push already validated in vs-m2-polish-skills; we just need to land
+# AT LEAST ONE place OR stack to satisfy the "≥2 of {push,place,stack}" bar.
+#
+# Distribution:
+#   place : 4
+#   stack : 4
+# total   : 8
+place the red cube on the green target
+place the blue cube onto the yellow target
+place the small red cube on the large green cube
+place the orange cube on the purple target
+stack the red cube on the green cube
+stack the small red cube on top of the green cube
+stack the blue cube on the yellow cube
+stack the small cube on the large cube
