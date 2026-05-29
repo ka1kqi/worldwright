@@ -1,0 +1,19 @@
+# Risk-3 ground-truth solvability seed list (TSV: <seed>\t<gt_label>).
+# gt_label in {solvable, borderline, unsolvable}.
+# Lines starting with # are ignored. Tab-separated. Used by scripts/run_risk3.py.
+lift the cube	solvable
+lift the red cube	solvable
+lift the small green cube	solvable
+pick up the blue cube	solvable
+pick up the small yellow cube	solvable
+lift the cube straight up	solvable
+lift the 5cm cube near the back edge	borderline
+lift the 6cm cube at x=0.75	borderline
+lift the cube at the front edge of the workspace	borderline
+lift a 30 centimetre cube	unsolvable
+lift the cube through the wall at x=2.0	unsolvable
+lift the cube at y=1.5	unsolvable
+lift the cube floating at z=0.5	unsolvable
+lift the 1 millimetre cube	unsolvable
+lift the 30 centimetre wide steel block	unsolvable
+lift the cube at y=-1.2 outside the workspace	unsolvable

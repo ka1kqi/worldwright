@@ -1,0 +1,17 @@
+task_id,seed,gt_label,pipeline_success,pipeline_failure_stage
+wright-lift-the-cube-6fa274ff19,lift the cube,solvable,false,verify
+wright-lift-the-red-cube-bee7f4a811,lift the red cube,solvable,true,
+wright-lift-the-small-green-cube-9ab5898927,lift the small green cube,solvable,true,
+wright-pick-up-the-blue-cube-008fb24791,pick up the blue cube,solvable,true,
+wright-pick-up-the-small-yellow-cube-d356c3a1f3,pick up the small yellow cube,solvable,true,
+wright-lift-the-cube-straight-up-6c76a4a46e,lift the cube straight up,solvable,false,verify
+wright-lift-the-5cm-cube-near-the-back-8615cc9405,lift the 5cm cube near the back edge,borderline,true,
+wright-lift-the-6cm-cube-at-x-0-75-060c860860,lift the 6cm cube at x=0.75,borderline,false,verify
+wright-lift-the-cube-at-the-front-edge-d8048b5183,lift the cube at the front edge of the workspace,borderline,false,verify
+wright-lift-a-30-centimetre-cube-b5b3a4ae3d,lift a 30 centimetre cube,unsolvable,true,
+wright-lift-the-cube-through-the-wall-a-69988ed2e6,lift the cube through the wall at x=2.0,unsolvable,false,verify
+wright-lift-the-cube-at-y-1-5-a4ed279964,lift the cube at y=1.5,unsolvable,true,
+wright-lift-the-cube-floating-at-z-0-5-60cff126b7,lift the cube floating at z=0.5,unsolvable,true,
+wright-lift-the-1-millimetre-cube-7d323fefce,lift the 1 millimetre cube,unsolvable,false,verify
+wright-lift-the-30-centimetre-wide-stee-8e6fe5f229,lift the 30 centimetre wide steel block,unsolvable,false,verify
+wright-lift-the-cube-at-y-1-2-outside-t-8b42c32fb4,lift the cube at y=-1.2 outside the workspace,unsolvable,true,
